@@ -23,7 +23,7 @@ public sealed partial class ProducerComponent : Component
     public List<EntityUid> Crew = new ();
 
     [ViewVariables]
-    public RelationshipContext CrewContext = new ("RelationshipPoolCrew", 0.85f);
+    public RelationshipContext CrewContext = new ("RelationshipPoolCrew", 0.75f);
 
     [ViewVariables]
     public RelationshipContext CaptainContext = new ("RelationshipPoolCaptains", 0.5f);

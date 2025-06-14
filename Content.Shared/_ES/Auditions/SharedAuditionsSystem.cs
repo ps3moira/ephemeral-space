@@ -9,6 +9,7 @@ using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Shared._ES.Auditions;
@@ -20,7 +21,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly PrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly SharedPvsOverrideSystem _pvs = default!;
 
     /// <inheritdoc/>
@@ -68,6 +69,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     {
         if (!_random.Prob(context.RelationshipProbability))
             return;
+
         var weightList = _prototypeManager.Index(context.PoolPrototype);
         var relationship =  weightList.Pick(_random);
         ChangeRelationship(characterA, characterB, relationship);
@@ -75,6 +77,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
         var unified = _random.Prob(context.UnificationProbability);
         if (unified)
             return;
+
         if (context.SeperatePoolPrototype is null)
         {
             RemoveRelationship(characterA, characterB, false);
@@ -84,6 +87,27 @@ public abstract class SharedAuditionsSystem : EntitySystem
         var newRelationship =  seperateWeightList.Pick(_random);
 
         ChangeRelationship(characterA, characterB, newRelationship, false);
+    }
+
+    public void IntegrateRelationshipGroup(RelationshipContext context, List<Entity<CharacterComponent>> characters)
+    {
+        // rain here. im no profesional, but i pulled out the paper & pencil for this "algorithm".
+        // that goes to show how really great i am with programming things. yay.
+        var stopwatch = new Stopwatch();
+
+        var debugCalls = 0;
+        stopwatch.Start();
+
+        for (var i = 0; i < characters.Count; i++)
+        {
+            for (var j = 0; j < i; j++)
+            {
+                IntegrateRelationship(context, characters[i], characters[j]);
+                debugCalls++;
+            }
+        }
+
+        Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
     }
 
     public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter()
@@ -142,14 +166,26 @@ public abstract class SharedAuditionsSystem : EntitySystem
         var crew = GenerateEmptyCrew(mapPath);
         var component = EnsureComp<CrewComponent>(crew);
 
+        var relationshipList = new List<Entity<CharacterComponent>>();
+
         component.Captain = captain;
+        component.Crew.Add(captain);
         component.CrewCount = crewCount;
+
+        relationshipList.Add((captain, EnsureComp<CharacterComponent>(captain)));
+
 
         for (var i = 0; i < crewCount; i++)
         {
             var member = GenerateCharacter();
             component.Crew.Add(member);
+            relationshipList.Add(member);
         }
+
+        ProducerComponent? producer = null;
+        if (!TryGetProducer(ref producer))
+            throw new Exception("Could not get ProducerComponent!");
+        IntegrateRelationshipGroup(producer.CrewContext, relationshipList);
 
         return crew;
     }
