@@ -13,7 +13,7 @@ namespace Content.Shared._ES.Auditions;
 /// <summary>
 /// The main system for handling the creation, integration of relations
 /// </summary>
-public abstract class AuditionsSystem : EntitySystem
+public abstract class SharedAuditionsSystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
