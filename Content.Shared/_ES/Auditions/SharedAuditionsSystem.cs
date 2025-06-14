@@ -89,6 +89,27 @@ public abstract class SharedAuditionsSystem : EntitySystem
         ChangeRelationship(characterA, characterB, newRelationship, false);
     }
 
+    public void IntegrateRelationshipGroup(RelationshipContext context, List<EntityUid> characters)
+    {
+        var stopwatch = new Stopwatch();
+
+        var debugCalls = 0;
+        stopwatch.Start();
+
+        for (var i = 0; i < characters.Count; i++)
+        {
+            for (var j = 0; j < i; j++)
+            {
+                IntegrateRelationship(context,
+                    (characters[i], EnsureComp<CharacterComponent>(characters[i])),
+                    (characters[j], EnsureComp<CharacterComponent>(characters[j])));
+                debugCalls++;
+            }
+        }
+
+        Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
+    }
+
     public void IntegrateRelationshipGroup(RelationshipContext context, List<Entity<CharacterComponent>> characters)
     {
         // rain here. im no profesional, but i pulled out the paper & pencil for this "algorithm".
