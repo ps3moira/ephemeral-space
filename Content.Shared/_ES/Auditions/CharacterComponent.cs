@@ -4,7 +4,7 @@ using Robust.Shared.Enums;
 namespace Content.Shared._ES.Auditions;
 
 /// <summary>
-/// This is used for...
+/// This is used for marking the character of components.
 /// </summary>
 [RegisterComponent]
 public sealed partial class CharacterComponent : Component

@@ -35,22 +35,37 @@ public abstract class SharedAuditionsSystem : EntitySystem
         _pvs.AddGlobalOverride(uid);
     }
 
+    /// <summary>
+    /// Returns the producer entity singleton, or creates one if it doesn't exist yet
+    /// </summary>
+    /// <param name="component"></param>
+    /// <returns></returns>
     public bool TryGetProducer([NotNullWhen(true)] ref ProducerComponent? component)
     {
         if (component != null)
             return true;
 
         var query = EntityQuery<ProducerComponent>().ToList();
-        component = !query.Any() ? CreateCastEntity() : query.First();
+        component = !query.Any() ? CreateProducerEntity() : query.First();
         return true;
     }
 
-    private ProducerComponent CreateCastEntity()
+    /// <summary>
+    /// Creates the producer entity, intended to be a singleton
+    /// </summary>
+    private ProducerComponent CreateProducerEntity()
     {
         var manager = Spawn(null, MapCoordinates.Nullspace);
         return EnsureComp<ProducerComponent>(manager);
     }
 
+    /// <summary>
+    /// Changes the relationship between two characters. If the relationship is not unified, then it assigns A's relationship with B, and does not affect B.
+    /// </summary>
+    /// <param name="characterA"></param>
+    /// <param name="characterB"></param>
+    /// <param name="relationshipId"></param>
+    /// <param name="unified"></param>
     public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool unified = true)
     {
         characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
@@ -58,6 +73,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
             characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
     }
 
+    /// <summary>
+    /// Removes the relationship between two characters. If the removal is not unified, then it removes A's relationship with B, and does not affect B.
+    /// </summary>
+    /// <param name="characterA"></param>
+    /// <param name="characterB"></param>
+    /// <param name="unified"></param>
     public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool unified = true)
     {
         characterA.Comp.Relationships.Remove(characterB.Comp.Name);
@@ -65,6 +86,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
             characterB.Comp.Relationships.Remove(characterA.Comp.Name);
     }
 
+    /// <summary>
+    /// Attempts to integrate a relationship between two characcters with the following relationship context.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="characterA"></param>
+    /// <param name="characterB"></param>
     public void IntegrateRelationship(RelationshipContext context, Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB)
     {
         if (!_random.Prob(context.RelationshipProbability))
@@ -89,27 +116,11 @@ public abstract class SharedAuditionsSystem : EntitySystem
         ChangeRelationship(characterA, characterB, newRelationship, false);
     }
 
-    public void IntegrateRelationshipGroup(RelationshipContext context, List<EntityUid> characters)
-    {
-        var stopwatch = new Stopwatch();
-
-        var debugCalls = 0;
-        stopwatch.Start();
-
-        for (var i = 0; i < characters.Count; i++)
-        {
-            for (var j = 0; j < i; j++)
-            {
-                IntegrateRelationship(context,
-                    (characters[i], EnsureComp<CharacterComponent>(characters[i])),
-                    (characters[j], EnsureComp<CharacterComponent>(characters[j])));
-                debugCalls++;
-            }
-        }
-
-        Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
-    }
-
+    /// <summary>
+    /// Attempts to integrate relationships with a group of characters. Uses a list of Entity&lt;CharacterComponent&gt;s.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="characters"></param>
     public void IntegrateRelationshipGroup(RelationshipContext context, List<Entity<CharacterComponent>> characters)
     {
         // rain here. im no profesional, but i pulled out the paper & pencil for this "algorithm".
@@ -131,6 +142,39 @@ public abstract class SharedAuditionsSystem : EntitySystem
         Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
     }
 
+
+    /// <summary>
+    /// Attempts to integrate relationships with a group of characters. Uses a list of EntityUids.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <param name="characters"></param>
+    public void IntegrateRelationshipGroup(RelationshipContext context, List<EntityUid> characters)
+    {
+        var stopwatch = new Stopwatch();
+
+        var debugCalls = 0;
+        stopwatch.Start();
+
+        for (var i = 0; i < characters.Count; i++)
+        {
+            for (var j = 0; j < i; j++)
+            {
+                IntegrateRelationship(context,
+                    (characters[i], EnsureComp<CharacterComponent>(characters[i])),
+                    (characters[j], EnsureComp<CharacterComponent>(characters[j])));
+                debugCalls++;
+            }
+        }
+
+        Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
+    }
+
+    /// <summary>
+    /// Creates a blank character.
+    /// </summary>
+    /// <param name="producer"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter(ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
@@ -146,6 +190,10 @@ public abstract class SharedAuditionsSystem : EntitySystem
         return (mind, component);
     }
 
+    /// <summary>
+    /// Generates a character with randomized name, age, gender and appearance.
+    /// </summary>
+    /// <returns></returns>
     public Entity<CharacterComponent> GenerateCharacter()
     {
         var newCharacter = CreateBlankCharacter();
@@ -164,6 +212,13 @@ public abstract class SharedAuditionsSystem : EntitySystem
         return (mind.Owner, characterComp);
     }
 
+    /// <summary>
+    /// Generates a completely empty crew entity.
+    /// </summary>
+    /// <param name="mapPath"></param>
+    /// <param name="producer"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public Entity<CrewComponent> GenerateEmptyCrew(ResPath mapPath, ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
@@ -181,6 +236,15 @@ public abstract class SharedAuditionsSystem : EntitySystem
         return (newCrew, component);
     }
 
+    /// <summary>
+    /// Generates a random crew entity and crewmembers, with a captain provided. Integrates relationships between all crew members.
+    /// </summary>
+    /// <param name="captain"></param>
+    /// <param name="crewCount"></param>
+    /// <param name="mapPath"></param>
+    /// <param name="producer"></param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
     public Entity<CrewComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ResPath mapPath, ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
@@ -208,6 +272,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
         return crew;
     }
 
+    /// <summary>
+    /// Completely generates a random crew entity, with random captains and crewmembers.
+    /// </summary>
+    /// <param name="crewCount"></param>
+    /// <param name="mapPath"></param>
+    /// <returns></returns>
     public Entity<CrewComponent> GenerateRandomCrew(int crewCount, ResPath mapPath)
     {
         return GenerateCrewWithCaptain(GenerateCharacter(), crewCount, mapPath);
