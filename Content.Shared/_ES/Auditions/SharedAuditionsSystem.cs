@@ -2,9 +2,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared.Mind;
 using Content.Shared.Preferences;
+using Content.Shared.Random;
+using Content.Shared.Random.Helpers;
 using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
 
@@ -17,6 +20,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly PrototypeManager _prototypeManager = default!;
     [Dependency] private readonly SharedPvsOverrideSystem _pvs = default!;
 
     /// <inheritdoc/>
@@ -51,6 +55,35 @@ public abstract class SharedAuditionsSystem : EntitySystem
         characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
         if (unified)
             characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
+    }
+
+    public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool unified = true)
+    {
+        characterA.Comp.Relationships.Remove(characterB.Comp.Name);
+        if (unified)
+            characterB.Comp.Relationships.Remove(characterA.Comp.Name);
+    }
+
+    public void IntegrateRelationship(RelationshipContext context, Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB)
+    {
+        if (!_random.Prob(context.RelationshipProbability))
+            return;
+        var weightList = _prototypeManager.Index(context.PoolPrototype);
+        var relationship =  weightList.Pick(_random);
+        ChangeRelationship(characterA, characterB, relationship);
+
+        var unified = _random.Prob(context.UnificationProbability);
+        if (unified)
+            return;
+        if (context.SeperatePoolPrototype is null)
+        {
+            RemoveRelationship(characterA, characterB, false);
+            return;
+        }
+        var seperateWeightList = _prototypeManager.Index(context.SeperatePoolPrototype.Value);
+        var newRelationship =  seperateWeightList.Pick(_random);
+
+        ChangeRelationship(characterA, characterB, newRelationship, false);
     }
 
     public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter()
