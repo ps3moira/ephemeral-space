@@ -12,9 +12,21 @@ public sealed partial class RelationshipPrototype : IPrototype
     [IdDataField]
     public string ID { get; } = default!;
 
+    /// <summary>
+    /// Name of this relationship.
+    /// </summary>
     [DataField, ViewVariables]
     public LocId Name;
 
+    /// <summary>
+    /// Color of this relationship.
+    /// </summary>
     [DataField, ViewVariables]
     public Color Color;
+
+    /// <summary>
+    /// Whether or not this relationship must be unified. Family members, ex-lovers, etc, all fall under this.
+    /// </summary>
+    [DataField, ViewVariables]
+    public bool ForceUnified;
 }
