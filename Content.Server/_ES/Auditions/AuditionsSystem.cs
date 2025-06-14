@@ -25,6 +25,9 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         if (!crew.Comp.Captain.HasValue)
             throw new Exception("Crew did not have a captain upon assignment");
 
+        var ev = new CrewGenerateEvent(crew);
+        RaiseLocalEvent(ref ev);
+
         return crew;
     }
 
@@ -40,6 +43,9 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         if (!TryGetProducer(ref producer))
             throw new Exception("Could not get ProducerComponent!");
 
+        var preEvt = new PreCastGenerateEvent(producer);
+        RaiseLocalEvent(ref preEvt);
+
         var captains = new List<Entity<CharacterComponent>>();
 
         for (var i = 0; i < captainCount; i++)
@@ -50,6 +56,9 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
 
         IntegrateRelationshipGroup(producer.CaptainContext, captains);
         IntegrateRelationshipGroup(producer.IntercrewContext, producer.Characters);
+
+        var postEvt = new PostCastGenerateEvent(producer);
+        RaiseLocalEvent(ref postEvt);
     }
 
     public void GenerateCast(
@@ -60,5 +69,38 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     )
     {
         GenerateCast(captainCount, _random.Next(minimumCrew, maximumCrew), producer);
+    }
+}
+
+[ByRefEvent]
+public struct CrewGenerateEvent
+{
+    public Entity<CrewComponent> Crew;
+
+    public CrewGenerateEvent(Entity<CrewComponent> crew)
+    {
+        Crew = crew;
+    }
+}
+
+[ByRefEvent]
+public struct PreCastGenerateEvent
+{
+    public ProducerComponent Producer;
+
+    public PreCastGenerateEvent(ProducerComponent producer)
+    {
+        Producer = producer;
+    }
+}
+
+[ByRefEvent]
+public struct PostCastGenerateEvent
+{
+    public ProducerComponent Producer;
+
+    public PostCastGenerateEvent(ProducerComponent producer)
+    {
+        Producer = producer;
     }
 }
