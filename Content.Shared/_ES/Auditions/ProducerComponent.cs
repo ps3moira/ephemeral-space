@@ -9,10 +9,12 @@ public sealed partial class ProducerComponent : Component
     /// <summary>
     /// All the characters in the cast.
     /// </summary>
+    [ViewVariables]
     public List<EntityUid> Characters = new ();
 
     /// <summary>
     /// List of all active crew entities.
     /// </summary>
+    [ViewVariables]
     public List<EntityUid> Crew = new ();
 }
