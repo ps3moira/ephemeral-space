@@ -5,9 +5,6 @@
     - node: start
       edges:
         - to: girder
-          completed:
-            - !type:SnapToGrid
-              southRotation: true
           steps:
             - material: Steel
               amount: 2
@@ -134,6 +131,7 @@
               amount: 2
               doAfter: 2
 
+# ES START
         - to: ESWallTube
           completed:
           - !type:SnapToGrid
@@ -141,6 +139,16 @@
           conditions:
           - !type:EntityAnchored {}
           steps:
+          - material: MetalRod
+            amount: 4
+            doAfter: 2
+
+        - to: ESWallDiagonalTube
+          conditions:
+          - !type:EntityAnchored { }
+          steps:
+          - tool: Screwing
+            doAfter: 1
           - material: MetalRod
             amount: 4
             doAfter: 2
@@ -156,6 +164,19 @@
         steps:
         - tool: Welding
           doAfter: 10
+
+    - node: ESWallDiagonalTube
+      entity: ESWallTubeDiagonal
+      edges:
+      - to: girder
+        completed:
+        - !type:SpawnPrototype
+          prototype: PartRodMetal1
+          amount: 4
+        steps:
+        - tool: Welding
+          doAfter: 10
+# ES END
 
     - node: wall
       entity: WallSolid
