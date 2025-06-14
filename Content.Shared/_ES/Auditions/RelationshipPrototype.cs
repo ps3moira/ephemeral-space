@@ -5,7 +5,7 @@ namespace Content.Shared._ES.Auditions;
 /// <summary>
 /// This is a prototype for marking relationships
 /// </summary>
-[Prototype("relationship")]
+[Prototype]
 public sealed partial class RelationshipPrototype : IPrototype
 {
     /// <inheritdoc/>
