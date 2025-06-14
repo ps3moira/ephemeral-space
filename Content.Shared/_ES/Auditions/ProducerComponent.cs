@@ -35,8 +35,8 @@ public sealed partial class ProducerComponent : Component
 /// <summary>
 /// Configuration for integrating relationships.
 /// </summary>
-[Serializable, NetSerializable]
-public struct RelationshipContext
+[Serializable, NetSerializable, DataDefinition]
+public partial struct RelationshipContext
 {
     /// <summary>
     /// List of possible relationships.
