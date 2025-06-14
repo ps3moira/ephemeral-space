@@ -130,7 +130,6 @@ public abstract class SharedAuditionsSystem : EntitySystem
         Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
     }
 
-
     /// <summary>
     /// Attempts to integrate relationships with a group of characters. Uses a list of EntityUids.
     /// </summary>
@@ -153,6 +152,11 @@ public abstract class SharedAuditionsSystem : EntitySystem
         }
 
         Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
+    }
+
+    public void IntegrateRelationshipGroup(SocialGroupComponent groupComponent)
+    {
+        IntegrateRelationshipGroup(groupComponent.RelativeContext, groupComponent.Members);
     }
 
     /// <summary>
@@ -200,18 +204,14 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a completely empty crew entity.
     /// </summary>
-    public Entity<CrewComponent> GenerateEmptyCrew(ProducerComponent? producer = null)
+    public Entity<SocialGroupComponent> GenerateEmptySocialGroup(ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
             throw new Exception("Could not get ProducerComponent!");
 
         var newCrew = EntityManager.Spawn();
-        var component = EnsureComp<CrewComponent>(newCrew);
-
-        component.Crew = new();
-        component.CrewCount = 0;
-
-        producer.Crew.Add(newCrew);
+        var component = EnsureComp<SocialGroupComponent>(newCrew);
+        producer.SocialGroups.Add(newCrew);
 
         return (newCrew, component);
     }
@@ -219,29 +219,21 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a random crew entity and crewmembers, with a captain provided. Integrates relationships between all crew members.
     /// </summary>
-    public Entity<CrewComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ProducerComponent? producer = null)
+    public Entity<SocialGroupComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
             throw new Exception("Could not get ProducerComponent!");
 
-        var crew = GenerateEmptyCrew(producer);
-        var component = EnsureComp<CrewComponent>(crew);
+        var crew = GenerateEmptySocialGroup(producer);
+        var component = EnsureComp<SocialGroupComponent>(crew);
+        component.RelativeContext = producer.CrewContext;
 
-        var relationshipList = new List<Entity<CharacterComponent>>();
-
-        component.Captain = captain;
-        component.Crew.Add(captain);
-        component.CrewCount = crewCount;
-
-        relationshipList.Add((captain, EnsureComp<CharacterComponent>(captain)));
-
+        component.Members.Add(captain);
         for (var i = 0; i < crewCount; i++)
         {
             var member = GenerateCharacter();
-            component.Crew.Add(member);
-            relationshipList.Add(member);
+            component.Members.Add(member);
         }
-        IntegrateRelationshipGroup(producer.CrewContext, relationshipList);
 
         return crew;
     }
@@ -249,7 +241,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Completely generates a random crew entity, with random captains and crewmembers.
     /// </summary>
-    public Entity<CrewComponent> GenerateRandomCrew(int crewCount)
+    public Entity<SocialGroupComponent> GenerateRandomCrew(int crewCount)
     {
         return GenerateCrewWithCaptain(GenerateCharacter(), crewCount);
     }

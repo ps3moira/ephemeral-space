@@ -10,23 +10,25 @@ namespace Content.Server._ES.Auditions;
 /// </summary>
 public sealed class AuditionsSystem : SharedAuditionsSystem
 {
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <summary>
     /// Generates and integrates a crew.
     /// </summary>
-    public Entity<CrewComponent> GenerateAndIntegrateCrew(int crewCount = 10, ProducerComponent? producer = null)
+    public Entity<SocialGroupComponent> GenerateAndIntegrateCrew(int crewCount = 10, ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
             throw new Exception("Could not get ProducerComponent!");
 
         var crew = GenerateRandomCrew(crewCount);
-        if (!crew.Comp.Captain.HasValue)
-            throw new Exception("Crew did not have a captain upon assignment");
 
-        var ev = new CrewGenerateEvent(crew);
-        RaiseLocalEvent(ref ev);
+        var pre = new CrewGeneratePreIntegrationEvent(crew);
+        RaiseLocalEvent(ref pre);
+
+        IntegrateRelationshipGroup(crew.Comp);
+
+        var post = new CrewGeneratePostIntegrationEvent(crew);
+        RaiseLocalEvent(ref post);
 
         return crew;
     }
@@ -46,12 +48,12 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         var preEvt = new PreCastGenerateEvent(producer);
         RaiseLocalEvent(ref preEvt);
 
-        var captains = new List<Entity<CharacterComponent>>();
+        var captains = new List<EntityUid>();
 
         for (var i = 0; i < captainCount; i++)
         {
             var newCrew = GenerateAndIntegrateCrew(crewCount, producer);
-            captains.Add((newCrew.Comp.Captain!.Value, EnsureComp<CharacterComponent>(newCrew.Comp.Captain.Value)));
+            captains.Add(newCrew.Comp.Members[0]);
         }
 
         IntegrateRelationshipGroup(producer.CaptainContext, captains);
@@ -73,11 +75,22 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
 }
 
 [ByRefEvent]
-public struct CrewGenerateEvent
+public struct CrewGeneratePreIntegrationEvent
 {
-    public Entity<CrewComponent> Crew;
+    public Entity<SocialGroupComponent> Crew;
 
-    public CrewGenerateEvent(Entity<CrewComponent> crew)
+    public CrewGeneratePreIntegrationEvent(Entity<SocialGroupComponent> crew)
+    {
+        Crew = crew;
+    }
+}
+
+[ByRefEvent]
+public struct CrewGeneratePostIntegrationEvent
+{
+    public Entity<SocialGroupComponent> Crew;
+
+    public CrewGeneratePostIntegrationEvent(Entity<SocialGroupComponent> crew)
     {
         Crew = crew;
     }

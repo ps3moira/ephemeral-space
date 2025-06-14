@@ -17,10 +17,10 @@ public sealed partial class ProducerComponent : Component
     public List<EntityUid> Characters = new ();
 
     /// <summary>
-    /// List of all active crew entities.
+    /// List of all active social groups.
     /// </summary>
     [DataField]
-    public List<EntityUid> Crew = new ();
+    public List<EntityUid> SocialGroups = new ();
 
     [DataField]
     public RelationshipContext CrewContext = new ("RelationshipPoolCrew", 0.75f);
