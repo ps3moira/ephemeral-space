@@ -26,16 +26,4 @@ public sealed partial class CrewComponent : Component
     /// </summary>
     [DataField]
     public int CrewCount = 5;
-
-    /// <summary>
-    /// Which ship grid is this crew entity assigned to (if it spawned)?
-    /// </summary>
-    [DataField]
-    public EntityUid? ShipGrid = null;
-
-    /// <summary>
-    /// What map should the system spawn when spawning the crew?
-    /// </summary>
-    [DataField]
-    public ResPath MapPath = default!;
 }
