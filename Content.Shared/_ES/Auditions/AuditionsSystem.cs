@@ -1,45 +1,90 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Content.Shared.Mind;
 using Content.Shared.Preferences;
+using Robust.Shared.Enums;
+using Robust.Shared.GameStates;
+using Robust.Shared.Map;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
 
 namespace Content.Shared._ES.Auditions;
 
 /// <summary>
-/// This handles casting!
+/// The main system for handling the creation, integration of relations
 /// </summary>
-public sealed class AuditionsSystem : EntitySystem
+public abstract class AuditionsSystem : EntitySystem
 {
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly SharedPvsOverrideSystem _pvs = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
     {
-
+        SubscribeLocalEvent<ProducerComponent, ComponentStartup>(OnStartup);
     }
 
-    public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationship, bool unified = true)
+    private void OnStartup(EntityUid uid, ProducerComponent component, ComponentStartup args)
     {
-        characterA.Comp.Relationships[characterB.Comp.Name] = relationship;
+        _pvs.AddGlobalOverride(uid);
+    }
+
+    public bool TryGetProducer([NotNullWhen(true)] ref ProducerComponent? component)
+    {
+        if (component != null)
+            return true;
+
+        var query = EntityQuery<ProducerComponent>().ToList();
+        component = !query.Any() ? CreateCastEntity() : query.First();
+        return true;
+    }
+
+    private ProducerComponent CreateCastEntity()
+    {
+        var manager = Spawn(null, MapCoordinates.Nullspace);
+        return EnsureComp<ProducerComponent>(manager);
+    }
+
+    public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool unified = true)
+    {
+        characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
         if (unified)
-            characterB.Comp.Relationships[characterA.Comp.Name] = relationship;
+            characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
+    }
+
+    public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter()
+    {
+        var mind = _mind.CreateMind(null);
+        var component = EnsureComp<CharacterComponent>(mind.Owner);
+        component.Name = "No Name";
+        component.Age = 21;
+        component.Gender = Gender.Neuter;
+
+        ProducerComponent? producer = null;
+        if (!TryGetProducer(ref producer))
+            throw new Exception("Could not get ProducerComponent!");
+        producer.Characters.Add(mind.Owner);
+
+        return (mind, component);
     }
 
     public Entity<CharacterComponent> GenerateCharacter()
     {
-        var newCharacter = EntityManager.Spawn();
+        var newCharacter = CreateBlankCharacter();
+        var characterComp = newCharacter.Item2;
+        var mind = newCharacter.Item1;
+
         var profile = HumanoidCharacterProfile.RandomWithSpecies();
 
-        var component = EnsureComp<CharacterComponent>(newCharacter);
-        component.Name = profile.Name;
-        component.Age = profile.Age;
-        component.Gender = profile.Gender;
-        component.Appearance = profile.Appearance;
+        characterComp.Name = profile.Name;
+        characterComp.Age = profile.Age;
+        characterComp.Gender = profile.Gender;
+        characterComp.Appearance = profile.Appearance;
 
-        _mind.CreateMind(null, component.Name);
+        mind.Comp.CharacterName = profile.Name;
 
-        return (newCharacter, component);
+        return (mind.Owner, characterComp);
     }
 
     public Entity<CrewComponent> GenerateEmptyCrew(ResPath mapPath)
@@ -50,6 +95,11 @@ public sealed class AuditionsSystem : EntitySystem
         component.Crew = new();
         component.CrewCount = 0;
         component.MapPath = mapPath;
+
+        ProducerComponent? producer = null;
+        if (!TryGetProducer(ref producer))
+            throw new Exception("Could not get ProducerComponent!");
+        producer.Crew.Add(newCrew);
 
         return (newCrew, component);
     }
