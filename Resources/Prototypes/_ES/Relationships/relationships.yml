@@ -28,4 +28,4 @@
   id: Exes
   name: relationship-name-ex
   color: "#f983ef"
-  forceUnified: true
+  forceMutual: true
