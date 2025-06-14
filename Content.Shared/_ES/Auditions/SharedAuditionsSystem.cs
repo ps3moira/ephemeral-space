@@ -58,22 +58,22 @@ public abstract class SharedAuditionsSystem : EntitySystem
     }
 
     /// <summary>
-    /// Changes the relationship between two characters. If the relationship is not unified, then it assigns A's relationship with B, and does not affect B.
+    /// Changes the relationship between two characters. If the relationship is not mutual, then it assigns A's relationship with B, and does not affect B.
     /// </summary>
-    public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool unified = true)
+    public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool mutual = true)
     {
         characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
-        if (unified)
+        if (mutual)
             characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
     }
 
     /// <summary>
-    /// Removes the relationship between two characters. If the removal is not unified, then it removes A's relationship with B, and does not affect B.
+    /// Removes the relationship between two characters. If the removal is not mutual, then it removes A's relationship with B, and does not affect B.
     /// </summary>
-    public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool unified = true)
+    public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool mutual = true)
     {
         characterA.Comp.Relationships.Remove(characterB.Comp.Name);
-        if (unified)
+        if (mutual)
             characterB.Comp.Relationships.Remove(characterA.Comp.Name);
     }
 
@@ -89,8 +89,8 @@ public abstract class SharedAuditionsSystem : EntitySystem
         var relationship =  weightList.Pick(_random);
         ChangeRelationship(characterA, characterB, relationship);
 
-        var unified = _random.Prob(context.UnificationProbability);
-        if (unified)
+        var mutual = _random.Prob(context.UnificationProbability);
+        if (mutual)
             return;
 
         if (context.SeperatePoolPrototype is null)

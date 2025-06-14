@@ -25,8 +25,8 @@ public sealed partial class RelationshipPrototype : IPrototype
     public Color Color;
 
     /// <summary>
-    /// Whether or not this relationship must be unified. Family members, ex-lovers, etc, all fall under this.
+    /// Whether or not this relationship must be mutual. Family members, ex-lovers, etc, all fall under this.
     /// </summary>
     [DataField, ViewVariables]
-    public bool ForceUnified;
+    public bool ForceMutual;
 }
