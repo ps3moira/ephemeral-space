@@ -13,22 +13,22 @@ public sealed partial class ProducerComponent : Component
     /// <summary>
     /// All the characters in the cast.
     /// </summary>
-    [ViewVariables]
+    [DataField]
     public List<EntityUid> Characters = new ();
 
     /// <summary>
     /// List of all active crew entities.
     /// </summary>
-    [ViewVariables]
+    [DataField]
     public List<EntityUid> Crew = new ();
 
-    [ViewVariables]
+    [DataField]
     public RelationshipContext CrewContext = new ("RelationshipPoolCrew", 0.75f);
 
-    [ViewVariables]
+    [DataField]
     public RelationshipContext CaptainContext = new ("RelationshipPoolCaptains", 0.5f);
 
-    [ViewVariables]
+    [DataField]
     public RelationshipContext IntercrewContext = new ("RelationshipPoolIntercrew", 0.1f);
 }
 
@@ -41,25 +41,25 @@ public struct RelationshipContext
     /// <summary>
     /// List of possible relationships.
     /// </summary>
-    [ViewVariables]
+    [DataField]
     public ProtoId<WeightedRandomPrototype> PoolPrototype;
 
     /// <summary>
     /// How likely is a relationship to spark in this context?
     /// </summary>
-    [ViewVariables]
+    [DataField]
     public float RelationshipProbability = 0.5f;
 
     /// <summary>
     /// How likely is a relationship to be mutual (both sides have the same relationship)?
     /// </summary>
-    [ViewVariables]
+    [DataField]
     public float UnificationProbability = 1f;
 
     /// <summary>
     /// If the relationship isnt mutual, what are other possible relationships to give? If null, no relationship is assigned.
     /// </summary>
-    [ViewVariables]
+    [DataField]
     public ProtoId<WeightedRandomPrototype>? SeperatePoolPrototype;
 
     public RelationshipContext()

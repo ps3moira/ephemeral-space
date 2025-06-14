@@ -1,30 +1,31 @@
 using Content.Shared.Humanoid;
 using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._ES.Auditions;
 
 /// <summary>
 /// This is used for marking the character of components.
 /// </summary>
-[RegisterComponent, NetworkedComponent]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CharacterComponent : Component
 {
-    [ViewVariables, DataField]
+    [DataField, AutoNetworkedField]
     public string Name = "Rain Miskovitch";
 
-    [ViewVariables, DataField]
+    [DataField, AutoNetworkedField]
     public int Age = 25;
 
-    [ViewVariables, DataField]
+    [DataField, AutoNetworkedField]
     public Gender Gender = Gender.Neuter;
 
-    [ViewVariables, DataField]
+    [DataField, AutoNetworkedField]
     public HumanoidCharacterAppearance Appearance = default!;
 
-    [ViewVariables, DataField]
-    public Dictionary<string, string> Relationships = new ();
+    [DataField, AutoNetworkedField]
+    public Dictionary<string, ProtoId<RelationshipPrototype>> Relationships = new ();
 
-    [ViewVariables, DataField]
+    [DataField, AutoNetworkedField]
     public List<EntityUid> Memories = new ();
 }
