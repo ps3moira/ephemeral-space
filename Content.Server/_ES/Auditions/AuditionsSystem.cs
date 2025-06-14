@@ -16,13 +16,6 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     /// <summary>
     /// Hires a cast, and integrates relationships between all of the characters.
     /// </summary>
-    /// <param name="captainCount"></param>
-    /// <param name="minimumCrew"></param>
-    /// <param name="maximumCrew"></param>
-    /// <param name="lowPopPoolPrototype"></param>
-    /// <param name="highPopPoolPrototype"></param>
-    /// <param name="producer"></param>
-    /// <exception cref="Exception"></exception>
     public void GenerateCast(
         int captainCount = 26,
         int minimumCrew = 5,
