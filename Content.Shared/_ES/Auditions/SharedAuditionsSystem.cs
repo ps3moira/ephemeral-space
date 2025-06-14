@@ -110,17 +110,16 @@ public abstract class SharedAuditionsSystem : EntitySystem
         Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
     }
 
-    public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter()
+    public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter(ProducerComponent? producer = null)
     {
+        if (!TryGetProducer(ref producer))
+            throw new Exception("Could not get ProducerComponent!");
+
         var mind = _mind.CreateMind(null);
         var component = EnsureComp<CharacterComponent>(mind.Owner);
         component.Name = "No Name";
         component.Age = 21;
         component.Gender = Gender.Neuter;
-
-        ProducerComponent? producer = null;
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
         producer.Characters.Add(mind.Owner);
 
         return (mind, component);
@@ -144,8 +143,11 @@ public abstract class SharedAuditionsSystem : EntitySystem
         return (mind.Owner, characterComp);
     }
 
-    public Entity<CrewComponent> GenerateEmptyCrew(ResPath mapPath)
+    public Entity<CrewComponent> GenerateEmptyCrew(ResPath mapPath, ProducerComponent? producer = null)
     {
+        if (!TryGetProducer(ref producer))
+            throw new Exception("Could not get ProducerComponent!");
+
         var newCrew = EntityManager.Spawn();
         var component = EnsureComp<CrewComponent>(newCrew);
 
@@ -153,17 +155,17 @@ public abstract class SharedAuditionsSystem : EntitySystem
         component.CrewCount = 0;
         component.MapPath = mapPath;
 
-        ProducerComponent? producer = null;
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
         producer.Crew.Add(newCrew);
 
         return (newCrew, component);
     }
 
-    public Entity<CrewComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ResPath mapPath)
+    public Entity<CrewComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ResPath mapPath, ProducerComponent? producer = null)
     {
-        var crew = GenerateEmptyCrew(mapPath);
+        if (!TryGetProducer(ref producer))
+            throw new Exception("Could not get ProducerComponent!");
+
+        var crew = GenerateEmptyCrew(mapPath, producer);
         var component = EnsureComp<CrewComponent>(crew);
 
         var relationshipList = new List<Entity<CharacterComponent>>();
@@ -174,17 +176,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
 
         relationshipList.Add((captain, EnsureComp<CharacterComponent>(captain)));
 
-
         for (var i = 0; i < crewCount; i++)
         {
             var member = GenerateCharacter();
             component.Crew.Add(member);
             relationshipList.Add(member);
         }
-
-        ProducerComponent? producer = null;
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
         IntegrateRelationshipGroup(producer.CrewContext, relationshipList);
 
         return crew;
