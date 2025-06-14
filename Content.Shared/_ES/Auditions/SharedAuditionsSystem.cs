@@ -65,6 +65,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
         characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
         if (mutual)
             characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
+        Dirty(characterA);
     }
 
     /// <summary>
@@ -75,6 +76,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
         characterA.Comp.Relationships.Remove(characterB.Comp.Name);
         if (mutual)
             characterB.Comp.Relationships.Remove(characterA.Comp.Name);
+        Dirty(characterA);
     }
 
     /// <summary>
@@ -167,6 +169,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
         component.Age = 21;
         component.Gender = Gender.Neuter;
         producer.Characters.Add(mind.Owner);
+        Dirty(mind, component);
 
         return (mind, component);
     }
@@ -188,6 +191,8 @@ public abstract class SharedAuditionsSystem : EntitySystem
         characterComp.Appearance = profile.Appearance;
 
         mind.Comp.CharacterName = profile.Name;
+        Dirty(mind, characterComp);
+        Dirty(mind, mind.Comp);
 
         return (mind.Owner, characterComp);
     }
@@ -195,7 +200,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a completely empty crew entity.
     /// </summary>
-    public Entity<CrewComponent> GenerateEmptyCrew(ResPath mapPath, ProducerComponent? producer = null)
+    public Entity<CrewComponent> GenerateEmptyCrew(ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
             throw new Exception("Could not get ProducerComponent!");
@@ -205,7 +210,6 @@ public abstract class SharedAuditionsSystem : EntitySystem
 
         component.Crew = new();
         component.CrewCount = 0;
-        component.MapPath = mapPath;
 
         producer.Crew.Add(newCrew);
 
@@ -215,12 +219,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a random crew entity and crewmembers, with a captain provided. Integrates relationships between all crew members.
     /// </summary>
-    public Entity<CrewComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ResPath mapPath, ProducerComponent? producer = null)
+    public Entity<CrewComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ProducerComponent? producer = null)
     {
         if (!TryGetProducer(ref producer))
             throw new Exception("Could not get ProducerComponent!");
 
-        var crew = GenerateEmptyCrew(mapPath, producer);
+        var crew = GenerateEmptyCrew(producer);
         var component = EnsureComp<CrewComponent>(crew);
 
         var relationshipList = new List<Entity<CharacterComponent>>();
@@ -245,8 +249,8 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Completely generates a random crew entity, with random captains and crewmembers.
     /// </summary>
-    public Entity<CrewComponent> GenerateRandomCrew(int crewCount, ResPath mapPath)
+    public Entity<CrewComponent> GenerateRandomCrew(int crewCount)
     {
-        return GenerateCrewWithCaptain(GenerateCharacter(), crewCount, mapPath);
+        return GenerateCrewWithCaptain(GenerateCharacter(), crewCount);
     }
 }
