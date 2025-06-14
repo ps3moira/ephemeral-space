@@ -27,8 +27,8 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         int captainCount = 26,
         int minimumCrew = 5,
         int maximumCrew = 12,
-        string lowPopPoolPrototype = "DefaultShipPoolLowPop",
-        string highPopPoolPrototype = "DefaultShipPoolHighPop",
+        [ForbidLiteral] string lowPopPoolPrototype = "DefaultShipPoolLowPop",
+        [ForbidLiteral] string highPopPoolPrototype = "DefaultShipPoolHighPop",
         ProducerComponent? producer = null
     )
     {
