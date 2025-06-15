@@ -1,6 +1,4 @@
-using Content.Server.Maps;
 using Content.Shared._ES.Auditions;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server._ES.Auditions;
