@@ -22,7 +22,7 @@
   id: Cousin
   name: relationship-name-cousin
   color: "#689efd"
-  forceUnified: true
+  forceMutual: true
 
 - type: relationship
   id: Exes
