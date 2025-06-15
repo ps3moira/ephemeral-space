@@ -78,7 +78,7 @@ public sealed class CastCommand : ToolshedCommand
     private AuditionsSystem? _auditions;
 
     [CommandImplementation("generate")]
-    public IEnumerable<string> Generate(int captainCount, int crewSize)
+    public IEnumerable<string> Generate(int captainCount = 26, int crewSize = 10)
     {
         _auditions ??= GetSys<AuditionsSystem>();
 
