@@ -13,6 +13,9 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
+// ES START
+using Content.Client._ES.Spawning;
+// ES END
 
 namespace Content.Client.Lobby
 {
@@ -110,6 +113,10 @@ namespace Content.Client.Lobby
                 return;
             }
 
+            // ES START
+            new SpawningWindow().OpenCentered();
+            return;
+            // ES END
             new LateJoinGui().OpenCentered();
         }
 
