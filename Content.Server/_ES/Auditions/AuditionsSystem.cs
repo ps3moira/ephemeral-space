@@ -70,57 +70,19 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     }
 }
 
-[ByRefEvent]
-public struct SocialGroupPreIntegrationEvent
-{
-    public Entity<SocialGroupComponent> Group;
 
-    public SocialGroupPreIntegrationEvent(Entity<SocialGroupComponent> group)
-    {
-        Group = group;
-    }
-}
 
 [ByRefEvent]
-public struct SocialGroupPostIntegrationEvent
-{
-    public Entity<SocialGroupComponent> Group;
-
-    public SocialGroupPostIntegrationEvent(Entity<SocialGroupComponent> group)
-    {
-        Group = group;
-    }
-}
+public readonly record struct SocialGroupPreIntegrationEvent(Entity<SocialGroupComponent> Group);
 
 [ByRefEvent]
-public struct PreCastGenerateEvent
-{
-    public ProducerComponent Producer;
-
-    public PreCastGenerateEvent(ProducerComponent producer)
-    {
-        Producer = producer;
-    }
-}
+public readonly record struct SocialGroupPostIntegrationEvent(Entity<SocialGroupComponent> Group);
 
 [ByRefEvent]
-public struct PostShipGenerateEvent
-{
-    public ProducerComponent Producer;
-
-    public PostShipGenerateEvent(ProducerComponent producer)
-    {
-        Producer = producer;
-    }
-}
+public readonly record struct PreCastGenerateEvent(ProducerComponent Producer);
 
 [ByRefEvent]
-public struct PostCastGenerateEvent
-{
-    public ProducerComponent Producer;
+public readonly record struct PostShipGenerateEvent(ProducerComponent Producer);
 
-    public PostCastGenerateEvent(ProducerComponent producer)
-    {
-        Producer = producer;
-    }
-}
+[ByRefEvent]
+public readonly record struct PostCastGenerateEvent(ProducerComponent Producer);
