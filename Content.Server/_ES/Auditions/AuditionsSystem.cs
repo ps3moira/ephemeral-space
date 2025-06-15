@@ -32,10 +32,13 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         var captains = GenerateEmptySocialGroup();
         captains.Comp.RelativeContext = producer.CaptainContext;
 
+        var newCharacters = new List<EntityUid>();
+
         for (var i = 0; i < captainCount; i++)
         {
             var newCrew = GenerateRandomCrew(crewCount);
             captains.Comp.Members.Add(newCrew.Comp.Members[0]);
+            newCharacters.AddRange(newCrew.Comp.Members);
         }
 
         var psgEvt = new PostShipGenerateEvent(producer);
@@ -44,6 +47,9 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         foreach (var group in producer.SocialGroups)
         {
             var comp = EnsureComp<SocialGroupComponent>(group);
+            if (comp.Integrated)
+                continue;
+
             var ent = (group, comp);
 
             var pre = new SocialGroupPreIntegrationEvent(ent);
@@ -55,7 +61,8 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
             RaiseLocalEvent(ref post);
         }
 
-        IntegrateRelationshipGroup(producer.IntercrewContext, producer.Characters);
+        IntegrateRelationshipGroup(producer.IntercrewContext, newCharacters);
+        producer.Characters.AddRange(newCharacters);
 
         var postEvt = new PostCastGenerateEvent(producer);
         RaiseLocalEvent(ref postEvt);

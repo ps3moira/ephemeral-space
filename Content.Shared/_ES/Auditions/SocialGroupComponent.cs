@@ -12,10 +12,15 @@ public sealed partial class SocialGroupComponent : Component
     [DataField]
     public List<EntityUid> Members = new ();
 
-
     /// <summary>
     /// When generating relationships within this group, what relationship context should we use?
     /// </summary>
     [DataField]
     public RelationshipContext RelativeContext = new ();
+
+    /// <summary>
+    /// Has this social group been integrated already?
+    /// </summary>
+    [DataField]
+    public bool Integrated;
 }
