@@ -1,5 +1,9 @@
+using System.Diagnostics;
+using Content.Server.Administration;
 using Content.Shared._ES.Auditions;
+using Content.Shared.Administration;
 using Robust.Shared.Random;
+using Robust.Shared.Toolshed;
 
 namespace Content.Server._ES.Auditions;
 
@@ -65,6 +69,43 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     )
     {
         GenerateCast(captainCount, _random.Next(minimumCrew, maximumCrew), producer);
+    }
+}
+
+[ToolshedCommand, AdminCommand(AdminFlags.Round)]
+public sealed class CastCommand : ToolshedCommand
+{
+    private AuditionsSystem? _auditions;
+
+    [CommandImplementation("generate")]
+    public IEnumerable<string> Generate(int captainCount, int crewSize)
+    {
+        _auditions ??= GetSys<AuditionsSystem>();
+
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        _auditions.GenerateCast(captainCount, crewSize, null);
+
+        yield return $"Generated cast in {stopwatch.Elapsed.TotalMilliseconds} ms.";
+    }
+
+    [CommandImplementation("view")]
+    public IEnumerable<string> View([PipedArgument] EntityUid castMember)
+    {
+        _auditions ??= GetSys<AuditionsSystem>();
+        if (!EntityManager.TryGetComponent<CharacterComponent>(castMember, out var character))
+        {
+            yield return "Invalid cast member object (did not have CharacterComponent)!";
+        }
+        else
+        {
+            yield return $"{character.Name}, {character.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships:";
+            foreach (var relationship in character.Relationships)
+            {
+                yield return $"{relationship.Key}: {relationship.Value}";
+            }
+        }
     }
 }
 
