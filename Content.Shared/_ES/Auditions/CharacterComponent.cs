@@ -31,5 +31,8 @@ public sealed partial class CharacterComponent : Component
     public Dictionary<string, ProtoId<RelationshipPrototype>> Relationships = new ();
 
     [DataField, AutoNetworkedField]
+    public ProtoId<BackgroundPrototype> Background = "Colonist";
+
+    [DataField, AutoNetworkedField]
     public List<EntityUid> Memories = new ();
 }

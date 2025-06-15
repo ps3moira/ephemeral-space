@@ -202,7 +202,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a character with randomized name, age, gender and appearance.
     /// </summary>
-    public Entity<CharacterComponent> GenerateCharacter()
+    public Entity<CharacterComponent> GenerateCharacter([ForbidLiteral] string randomPrototype = "DefaultBackground")
     {
         var newCharacter = CreateBlankCharacter();
         var characterComp = newCharacter.Item2;
@@ -219,6 +219,10 @@ public abstract class SharedAuditionsSystem : EntitySystem
         var month = _random.Next(1, 12);
         var day = _random.Next(1, GetDaysInMonth(month, year));
         characterComp.DateOfBirth = new DateTime(year, month, day);
+
+        var prototype = _prototypeManager.Index<WeightedRandomPrototype>(randomPrototype);
+        var background = prototype.Pick(_random);
+        characterComp.Background = background;
 
         mind.Comp.CharacterName = profile.Name;
         Dirty(mind, characterComp);
