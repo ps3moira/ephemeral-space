@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using Content.Server.Administration;
 using Content.Shared._ES.Auditions;
 using Content.Shared.Administration;
@@ -108,7 +109,7 @@ public sealed class CastCommand : ToolshedCommand
         }
         else
         {
-            yield return $"{character.Name}, {character.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships\n\n";
+            yield return $"{character.Name}, {character.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships\n";
             Dictionary<string, List<string>> relationships = new();
             foreach (var relationship in character.Relationships)
             {
@@ -120,7 +121,7 @@ public sealed class CastCommand : ToolshedCommand
 
             foreach (var relationship in relationships)
             {
-                yield return $"{relationship.Key} ({relationship.Value.Count}): {relationship.Value}";
+                yield return $"{relationship.Key} ({relationship.Value.Count}): {string.Join(", ", relationship.Value.ToArray())}";
             }
         }
     }
