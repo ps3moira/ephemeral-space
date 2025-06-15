@@ -25,7 +25,7 @@ public sealed partial class CharacterComponent : Component
     public HumanoidCharacterAppearance Appearance = default!;
 
     [DataField, AutoNetworkedField]
-    public DateTime DateOfBirth = new(0, 0, 0);
+    public DateTime DateOfBirth = new(2025, 1, 1);
 
     [DataField, AutoNetworkedField]
     public Dictionary<string, ProtoId<RelationshipPrototype>> Relationships = new ();

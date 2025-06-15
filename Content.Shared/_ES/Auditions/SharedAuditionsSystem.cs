@@ -215,9 +215,9 @@ public abstract class SharedAuditionsSystem : EntitySystem
         characterComp.Gender = profile.Gender;
         characterComp.Appearance = profile.Appearance;
 
-        var year = _config.GetCVar(ECCVars.InGameYear);
+        var year = _config.GetCVar(ECCVars.InGameYear) - characterComp.Age;
         var month = _random.Next(1, 12);
-        var day = _random.Next(1, GetDaysInMonth(month, year - characterComp.Age));
+        var day = _random.Next(1, GetDaysInMonth(month, year));
         characterComp.DateOfBirth = new DateTime(year, month, day);
 
         mind.Comp.CharacterName = profile.Name;
