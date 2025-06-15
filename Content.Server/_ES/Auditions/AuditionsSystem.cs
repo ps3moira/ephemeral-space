@@ -70,19 +70,32 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     }
 }
 
-
-
+/// <summary>
+/// Fires prior to this social group's relationships being integrated.
+/// </summary>
 [ByRefEvent]
 public readonly record struct SocialGroupPreIntegrationEvent(Entity<SocialGroupComponent> Group);
 
+/// <summary>
+/// Fires after this social group's relationships have been integrated.
+/// </summary>
 [ByRefEvent]
 public readonly record struct SocialGroupPostIntegrationEvent(Entity<SocialGroupComponent> Group);
 
+/// <summary>
+/// Fires prior to any generation events (captain group, crew groups, etc).
+/// </summary>
 [ByRefEvent]
 public readonly record struct PreCastGenerateEvent(ProducerComponent Producer);
 
+/// <summary>
+/// Fires after the primary generation events (captain group, crew group, etc) but before integration of relationships.
+/// </summary>
 [ByRefEvent]
 public readonly record struct PostShipGenerateEvent(ProducerComponent Producer);
 
+/// <summary>
+/// Fires after all relationships have been integrated.
+/// </summary>
 [ByRefEvent]
 public readonly record struct PostCastGenerateEvent(ProducerComponent Producer);
