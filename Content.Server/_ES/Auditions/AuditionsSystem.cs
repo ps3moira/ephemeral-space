@@ -13,27 +13,6 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     [Dependency] private readonly IRobustRandom _random = default!;
 
     /// <summary>
-    /// Generates and integrates a crew.
-    /// </summary>
-    public Entity<SocialGroupComponent> GenerateAndIntegrateCrew(int crewCount = 10, ProducerComponent? producer = null)
-    {
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
-
-        var crew = GenerateRandomCrew(crewCount);
-
-        var pre = new CrewGeneratePreIntegrationEvent(crew);
-        RaiseLocalEvent(ref pre);
-
-        IntegrateRelationshipGroup(crew.Comp);
-
-        var post = new CrewGeneratePostIntegrationEvent(crew);
-        RaiseLocalEvent(ref post);
-
-        return crew;
-    }
-
-    /// <summary>
     /// Hires a cast, and integrates relationships between all of the characters.
     /// </summary>
     public void GenerateCast(
@@ -48,15 +27,32 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         var preEvt = new PreCastGenerateEvent(producer);
         RaiseLocalEvent(ref preEvt);
 
-        var captains = new List<EntityUid>();
+        var captains = GenerateEmptySocialGroup();
+        captains.Comp.RelativeContext = producer.CaptainContext;
 
         for (var i = 0; i < captainCount; i++)
         {
-            var newCrew = GenerateAndIntegrateCrew(crewCount, producer);
-            captains.Add(newCrew.Comp.Members[0]);
+            var newCrew = GenerateRandomCrew(crewCount);
+            captains.Comp.Members.Add(newCrew.Comp.Members[0]);
         }
 
-        IntegrateRelationshipGroup(producer.CaptainContext, captains);
+        var psgEvt = new PostShipGenerateEvent(producer);
+        RaiseLocalEvent(ref psgEvt);
+
+        foreach (var group in producer.SocialGroups)
+        {
+            var comp = EnsureComp<SocialGroupComponent>(group);
+            var ent = (group, comp);
+
+            var pre = new SocialGroupPreIntegrationEvent(ent);
+            RaiseLocalEvent(ref pre);
+
+            IntegrateRelationshipGroup(comp.RelativeContext, comp.Members);
+
+            var post = new SocialGroupPostIntegrationEvent(ent);
+            RaiseLocalEvent(ref post);
+        }
+
         IntegrateRelationshipGroup(producer.IntercrewContext, producer.Characters);
 
         var postEvt = new PostCastGenerateEvent(producer);
@@ -75,24 +71,24 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
 }
 
 [ByRefEvent]
-public struct CrewGeneratePreIntegrationEvent
+public struct SocialGroupPreIntegrationEvent
 {
-    public Entity<SocialGroupComponent> Crew;
+    public Entity<SocialGroupComponent> Group;
 
-    public CrewGeneratePreIntegrationEvent(Entity<SocialGroupComponent> crew)
+    public SocialGroupPreIntegrationEvent(Entity<SocialGroupComponent> group)
     {
-        Crew = crew;
+        Group = group;
     }
 }
 
 [ByRefEvent]
-public struct CrewGeneratePostIntegrationEvent
+public struct SocialGroupPostIntegrationEvent
 {
-    public Entity<SocialGroupComponent> Crew;
+    public Entity<SocialGroupComponent> Group;
 
-    public CrewGeneratePostIntegrationEvent(Entity<SocialGroupComponent> crew)
+    public SocialGroupPostIntegrationEvent(Entity<SocialGroupComponent> group)
     {
-        Crew = crew;
+        Group = group;
     }
 }
 
@@ -102,6 +98,17 @@ public struct PreCastGenerateEvent
     public ProducerComponent Producer;
 
     public PreCastGenerateEvent(ProducerComponent producer)
+    {
+        Producer = producer;
+    }
+}
+
+[ByRefEvent]
+public struct PostShipGenerateEvent
+{
+    public ProducerComponent Producer;
+
+    public PostShipGenerateEvent(ProducerComponent producer)
     {
         Producer = producer;
     }
