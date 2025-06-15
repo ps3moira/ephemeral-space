@@ -188,9 +188,9 @@ public abstract class SharedAuditionsSystem : EntitySystem
         component.Age = 21;
         component.Gender = Gender.Neuter;
 
-        var year = _config.GetCVar(ECCVars.InGameYear);
+        var year = _config.GetCVar(ECCVars.InGameYear) - component.Age;
         var month = _random.Next(1, 12);
-        var day = _random.Next(1, GetDaysInMonth(month, year - component.Age));
+        var day = _random.Next(1, GetDaysInMonth(month, year));
         component.DateOfBirth = new DateTime(year, month, day);
 
         producer.Characters.Add(mind.Owner);
