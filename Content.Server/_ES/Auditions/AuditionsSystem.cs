@@ -56,6 +56,7 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
             RaiseLocalEvent(ref pre);
 
             IntegrateRelationshipGroup(comp.RelativeContext, comp.Members);
+            comp.Integrated = true;
 
             var post = new SocialGroupPostIntegrationEvent(ent);
             RaiseLocalEvent(ref post);
@@ -107,10 +108,19 @@ public sealed class CastCommand : ToolshedCommand
         }
         else
         {
-            yield return $"{character.Name}, {character.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships:";
+            yield return $"{character.Name}, {character.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships\n\n";
+            Dictionary<string, List<string>> relationships = new();
             foreach (var relationship in character.Relationships)
             {
-                yield return $"{relationship.Key}: {relationship.Value}";
+                if (relationships.ContainsKey(relationship.Value))
+                    relationships[relationship.Value].Add(relationship.Key);
+                else
+                    relationships[relationship.Value] = [relationship.Key];
+            }
+
+            foreach (var relationship in relationships)
+            {
+                yield return $"{relationship.Key} ({relationship.Value.Count}): {relationship.Value}";
             }
         }
     }
