@@ -1,9 +1,11 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Content.Shared._ES.CCVar;
 using Content.Shared.Mind;
 using Content.Shared.Preferences;
 using Content.Shared.Random;
 using Content.Shared.Random.Helpers;
+using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
@@ -19,10 +21,11 @@ namespace Content.Shared._ES.Auditions;
 /// </summary>
 public abstract class SharedAuditionsSystem : EntitySystem
 {
+    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+    [Dependency] private readonly IConfigurationManager _config = default!;
+    [Dependency] private readonly SharedPvsOverrideSystem _pvs = default!;
     [Dependency] private readonly SharedMindSystem _mind = default!;
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly SharedPvsOverrideSystem _pvs = default!;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -160,6 +163,18 @@ public abstract class SharedAuditionsSystem : EntitySystem
     }
 
     /// <summary>
+    /// Returns the amount of days there are in a month.
+    /// </summary>
+    public int GetDaysInMonth(int month, int year)
+    {
+        var leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+        var thirtyMonths = new List<int> {4, 6, 9, 11};
+        if (month == 2)
+            return leapYear ? 29 : 28;
+        return thirtyMonths.Contains(month) ? 30 : 31;
+    }
+
+    /// <summary>
     /// Creates a blank character.
     /// </summary>
     public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter(ProducerComponent? producer = null)
@@ -172,6 +187,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
         component.Name = "No Name";
         component.Age = 21;
         component.Gender = Gender.Neuter;
+
+        var year = _config.GetCVar(ECCVars.InGameYear);
+        var month = _random.Next(1, 12);
+        var day = _random.Next(1, GetDaysInMonth(month, year - component.Age));
+        component.DateOfBirth = new DateTime(year, month, day);
+
         producer.Characters.Add(mind.Owner);
         Dirty(mind, component);
 
@@ -193,6 +214,11 @@ public abstract class SharedAuditionsSystem : EntitySystem
         characterComp.Age = profile.Age;
         characterComp.Gender = profile.Gender;
         characterComp.Appearance = profile.Appearance;
+
+        var year = _config.GetCVar(ECCVars.InGameYear);
+        var month = _random.Next(1, 12);
+        var day = _random.Next(1, GetDaysInMonth(month, year - characterComp.Age));
+        characterComp.DateOfBirth = new DateTime(year, month, day);
 
         mind.Comp.CharacterName = profile.Name;
         Dirty(mind, characterComp);
