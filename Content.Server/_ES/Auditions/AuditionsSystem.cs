@@ -1,8 +1,13 @@
 using System.Diagnostics;
-using System.Linq;
+using Content.Server._ES.Auditions.Components;
 using Content.Server.Administration;
+using Content.Server.Mind;
+using Content.Server.Station.Events;
+using Content.Server.Station.Systems;
 using Content.Shared._ES.Auditions;
 using Content.Shared.Administration;
+using Content.Shared.GameTicking;
+using Content.Shared.Mind;
 using Robust.Shared.Random;
 using Robust.Shared.Toolshed;
 
@@ -14,6 +19,55 @@ namespace Content.Server._ES.Auditions;
 public sealed class AuditionsSystem : SharedAuditionsSystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly MindSystem _mind = default!;
+    [Dependency] private readonly StationJobsSystem _stationJobs = default!;
+    [Dependency] private readonly StationSpawningSystem _stationSpawning = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<StationPostInitEvent>(OnStationPostInit);
+
+        SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
+    }
+
+    private void OnStationPostInit(ref StationPostInitEvent ev)
+    {
+        var cast = EnsureComp<StationCastComponent>(ev.Station);
+        cast.Crew = GenerateRandomCrew(10); // TODO: temporary until proper role pooling.
+    }
+
+    private void OnBeforeSpawn(PlayerBeforeSpawnEvent ev)
+    {
+        if (!TryComp<StationCastComponent>(ev.Station, out var cast) || cast.Crew == EntityUid.Invalid)
+            return;
+
+        if (!TryComp<SocialGroupComponent>(cast.Crew, out var socialGroup))
+            return;
+
+        var availableMembers = new List<EntityUid>();
+        foreach (var member in socialGroup.Members)
+        {
+            if (!TryComp<MindComponent>(member, out var mindComponent))
+                continue;
+
+            if (mindComponent.OriginalOwnedEntity is not null)
+                continue;
+
+            availableMembers.Add(member);
+        }
+
+        var mind = availableMembers.Count != 0 ? _random.Pick(availableMembers) : GenerateCharacter().Owner;
+        _mind.SetUserId(mind, ev.Player.UserId);
+        var character = Comp<CharacterComponent>(mind);
+
+        var job = ev.JobId ?? _stationJobs.PickBestAvailableJobWithPriority(ev.Station, character.Profile.JobPriorities, true);
+        var mob = _stationSpawning.SpawnPlayerCharacterOnStation(ev.Station, job, character.Profile);
+        _mind.TransferTo(mind, mob);
+
+        ev.Handled = true;
+    }
 
     /// <summary>
     /// Hires a cast, and integrates relationships between all of the characters.
@@ -24,8 +78,7 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         ProducerComponent? producer = null
     )
     {
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
+        producer ??= GetProducer();
 
         var preEvt = new PreCastGenerateEvent(producer);
         RaiseLocalEvent(ref preEvt);
@@ -40,6 +93,7 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
             var newCrew = GenerateRandomCrew(crewCount);
             captains.Comp.Members.Add(newCrew.Comp.Members[0]);
             newCharacters.AddRange(newCrew.Comp.Members);
+            producer.AvailableCrews.Add(newCrew);
         }
 
         var psgEvt = new PostShipGenerateEvent(producer);

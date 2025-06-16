@@ -16,6 +16,9 @@ public sealed partial class ProducerComponent : Component
     [DataField]
     public List<EntityUid> Characters = new ();
 
+    [DataField]
+    public List<EntityUid> AvailableCrews = new();
+
     /// <summary>
     /// List of all active social groups.
     /// </summary>

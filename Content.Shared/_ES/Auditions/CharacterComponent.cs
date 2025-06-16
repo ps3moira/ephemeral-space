@@ -1,4 +1,5 @@
 using Content.Shared.Humanoid;
+using Content.Shared.Preferences;
 using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -13,10 +14,10 @@ namespace Content.Shared._ES.Auditions;
 public sealed partial class CharacterComponent : Component
 {
     [DataField, AutoNetworkedField]
-    public string Name = "Rain Miskovitch";
+    public string Name;
 
     [DataField, AutoNetworkedField]
-    public int Age = 25;
+    public int Age;
 
     [DataField, AutoNetworkedField]
     public Gender Gender = Gender.Neuter;
@@ -25,14 +26,17 @@ public sealed partial class CharacterComponent : Component
     public HumanoidCharacterAppearance Appearance = default!;
 
     [DataField, AutoNetworkedField]
-    public DateTime DateOfBirth = new(2025, 1, 1);
+    public DateTime DateOfBirth;
 
     [DataField, AutoNetworkedField]
     public Dictionary<string, ProtoId<RelationshipPrototype>> Relationships = new ();
 
     [DataField, AutoNetworkedField]
-    public ProtoId<BackgroundPrototype> Background = "Colonist";
+    public ProtoId<BackgroundPrototype> Background;
 
     [DataField, AutoNetworkedField]
     public List<EntityUid> Memories = new ();
+
+    [DataField, AutoNetworkedField]
+    public HumanoidCharacterProfile Profile;
 }
