@@ -13,8 +13,8 @@ namespace Content.Server.Audio;
 
 public sealed class ContentAudioSystem : SharedContentAudioSystem
 {
-// ES START
     [ValidatePrototypeId<SoundCollectionPrototype>]
+// ES START
     private const string LobbyMusicCollection = "LobbyMusicES";
 // ES END
 
