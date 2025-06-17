@@ -1,9 +1,6 @@
-using Content.Shared.Humanoid;
 using Content.Shared.Preferences;
-using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Serialization;
 
 namespace Content.Shared._ES.Auditions;
 
@@ -19,7 +16,7 @@ public sealed partial class CharacterComponent : Component
     public DateTime DateOfBirth;
 
     [DataField, AutoNetworkedField]
-    public Dictionary<string, ProtoId<RelationshipPrototype>> Relationships = new ();
+    public Dictionary<EntityUid, ProtoId<RelationshipPrototype>> Relationships = new ();
 
     [DataField, AutoNetworkedField]
     public ProtoId<BackgroundPrototype> Background;

@@ -58,9 +58,9 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// </summary>
     public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool mutual = true)
     {
-        characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
+        characterA.Comp.Relationships[characterB] = relationshipId;
         if (mutual)
-            characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
+            characterB.Comp.Relationships[characterA] = relationshipId;
         Dirty(characterA);
     }
 
@@ -69,9 +69,9 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// </summary>
     public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool mutual = true)
     {
-        characterA.Comp.Relationships.Remove(characterB.Comp.Name);
+        characterA.Comp.Relationships.Remove(characterB);
         if (mutual)
-            characterB.Comp.Relationships.Remove(characterA.Comp.Name);
+            characterB.Comp.Relationships.Remove(characterA);
         Dirty(characterA);
     }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using Content.Server._ES.Auditions.Components;
 using Content.Server.Administration;
 using Content.Server.Mind;
@@ -6,6 +7,7 @@ using Content.Shared._ES.Auditions;
 using Content.Shared.Administration;
 using Content.Shared.GameTicking;
 using Content.Shared.Mind;
+using Content.Shared.Random.Helpers;
 using JetBrains.Annotations;
 using Robust.Shared.Random;
 using Robust.Shared.Toolshed;
@@ -40,13 +42,25 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
     {
         var producer = GetProducer();
 
+        var cast = EnsureComp<StationCastComponent>(station);
+
         if (producer.UnusedCharacterPool.Count < producer.PoolRefreshSize)
         {
             Log.Debug($"Pool depleted below refresh size ({producer.PoolRefreshSize}). Replenishing pool.");
             GenerateCast(producer.PoolSize - producer.UnusedCharacterPool.Count, producer);
         }
 
-        var ent = _random.PickAndTake(producer.UnusedCharacterPool);
+        var weightedMembers = new Dictionary<EntityUid, float>();
+        foreach (var castMember in producer.UnusedCharacterPool)
+        {
+            if (!TryComp<CharacterComponent>(castMember, out var characterComponent))
+                continue;
+
+            // arbitrary formula but good enough
+            weightedMembers.Add(castMember, 4 * MathF.Pow(4, characterComponent.Relationships.Keys.Count(k => cast.Crew.Contains(k))));
+        }
+
+        var ent = _random.PickAndTake(weightedMembers);
         return (ent, Comp<MindComponent>(ent), Comp<CharacterComponent>(ent));
     }
 
@@ -125,7 +139,7 @@ public sealed class CastCommand : ToolshedCommand
         else
         {
             yield return $"{character.Name}, {character.Profile.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships\n";
-            Dictionary<string, List<string>> relationships = new();
+            Dictionary<string, List<EntityUid>> relationships = new();
             foreach (var relationship in character.Relationships)
             {
                 if (relationships.ContainsKey(relationship.Value))
