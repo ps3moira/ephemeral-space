@@ -11,13 +11,28 @@ namespace Content.Shared._ES.Auditions;
 public sealed partial class ProducerComponent : Component
 {
     /// <summary>
+    /// The amount of characters we refresh <see cref="UnusedCharacterPool"/> to.
+    /// </summary>
+    [DataField]
+    public int PoolSize = 50;
+
+    /// <summary>
+    /// Once the pool goes below this amount, we'll refresh it
+    /// </summary>
+    [DataField]
+    public int PoolRefreshSize = 25;
+
+    /// <summary>
     /// All the characters in the cast.
     /// </summary>
     [DataField]
-    public List<EntityUid> Characters = new ();
+    public List<EntityUid> Characters = new();
 
+    /// <summary>
+    /// A pool of characters who have not been taken by players.
+    /// </summary>
     [DataField]
-    public List<EntityUid> AvailableCrews = new();
+    public List<EntityUid> UnusedCharacterPool = new();
 
     /// <summary>
     /// List of all active social groups.
@@ -26,13 +41,7 @@ public sealed partial class ProducerComponent : Component
     public List<EntityUid> SocialGroups = new ();
 
     [DataField]
-    public RelationshipContext CrewContext = new ("RelationshipPoolCrew", 0.75f);
-
-    [DataField]
-    public RelationshipContext CaptainContext = new ("RelationshipPoolCaptains", 0.5f);
-
-    [DataField]
-    public RelationshipContext IntercrewContext = new ("RelationshipPoolIntercrew", 0.1f);
+    public RelationshipContext IntercrewContext = new ("RelationshipPoolIntercrew", 0.25f);
 }
 
 /// <summary>

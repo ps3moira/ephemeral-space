@@ -13,17 +13,7 @@ namespace Content.Shared._ES.Auditions;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class CharacterComponent : Component
 {
-    [DataField, AutoNetworkedField]
-    public string Name;
-
-    [DataField, AutoNetworkedField]
-    public int Age;
-
-    [DataField, AutoNetworkedField]
-    public Gender Gender = Gender.Neuter;
-
-    [DataField, AutoNetworkedField]
-    public HumanoidCharacterAppearance Appearance = default!;
+    public string Name => Profile.Name;
 
     [DataField, AutoNetworkedField]
     public DateTime DateOfBirth;

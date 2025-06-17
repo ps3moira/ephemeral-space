@@ -177,6 +177,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
         Dirty(ent, character);
 
         producer.Characters.Add(ent);
+        producer.UnusedCharacterPool.Add(ent);
 
         return (ent, mind, character);
     }
@@ -193,34 +194,5 @@ public abstract class SharedAuditionsSystem : EntitySystem
         producer.SocialGroups.Add(newCrew);
 
         return (newCrew, component);
-    }
-
-    /// <summary>
-    /// Generates a random crew entity and crewmembers, with a captain provided. Integrates relationships between all crew members.
-    /// </summary>
-    public Entity<SocialGroupComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ProducerComponent? producer = null)
-    {
-        producer ??= GetProducer();
-
-        var crew = GenerateEmptySocialGroup(producer);
-        var component = EnsureComp<SocialGroupComponent>(crew);
-        component.RelativeContext = producer.CrewContext;
-
-        component.Members.Add(captain);
-        for (var i = 0; i < crewCount; i++)
-        {
-            var member = GenerateCharacter();
-            component.Members.Add(member);
-        }
-
-        return crew;
-    }
-
-    /// <summary>
-    /// Completely generates a random crew entity, with random captains and crewmembers.
-    /// </summary>
-    public Entity<SocialGroupComponent> GenerateRandomCrew(int crewCount)
-    {
-        return GenerateCrewWithCaptain(GenerateCharacter(), crewCount);
     }
 }

@@ -1,13 +1,9 @@
 using System.Diagnostics;
-using Content.Server._ES.Auditions.Components;
 using Content.Server.Administration;
-using Content.Server.Mind;
-using Content.Server.Station.Events;
-using Content.Server.Station.Systems;
 using Content.Shared._ES.Auditions;
 using Content.Shared.Administration;
-using Content.Shared.GameTicking;
 using Content.Shared.Mind;
+using JetBrains.Annotations;
 using Robust.Shared.Random;
 using Robust.Shared.Toolshed;
 
@@ -19,81 +15,37 @@ namespace Content.Server._ES.Auditions;
 public sealed class AuditionsSystem : SharedAuditionsSystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
-    [Dependency] private readonly MindSystem _mind = default!;
-    [Dependency] private readonly StationJobsSystem _stationJobs = default!;
-    [Dependency] private readonly StationSpawningSystem _stationSpawning = default!;
 
-    public override void Initialize()
+    public Entity<MindComponent, CharacterComponent> GetRandomCharacterFromPool(EntityUid station)
     {
-        base.Initialize();
+        var producer = GetProducer();
 
-        SubscribeLocalEvent<StationPostInitEvent>(OnStationPostInit);
-
-        SubscribeLocalEvent<PlayerBeforeSpawnEvent>(OnBeforeSpawn);
-    }
-
-    private void OnStationPostInit(ref StationPostInitEvent ev)
-    {
-        var cast = EnsureComp<StationCastComponent>(ev.Station);
-        cast.Crew = GenerateRandomCrew(10); // TODO: temporary until proper role pooling.
-    }
-
-    private void OnBeforeSpawn(PlayerBeforeSpawnEvent ev)
-    {
-        if (!TryComp<StationCastComponent>(ev.Station, out var cast) || cast.Crew == EntityUid.Invalid)
-            return;
-
-        if (!TryComp<SocialGroupComponent>(cast.Crew, out var socialGroup))
-            return;
-
-        var availableMembers = new List<EntityUid>();
-        foreach (var member in socialGroup.Members)
+        if (producer.UnusedCharacterPool.Count < producer.PoolRefreshSize)
         {
-            if (!TryComp<MindComponent>(member, out var mindComponent))
-                continue;
-
-            if (mindComponent.OriginalOwnedEntity is not null)
-                continue;
-
-            availableMembers.Add(member);
+            Log.Debug($"Pool depleted below refresh size ({producer.PoolRefreshSize}). Replenishing pool.");
+            GenerateCast(producer.PoolSize - producer.UnusedCharacterPool.Count, producer);
         }
 
-        var mind = availableMembers.Count != 0 ? _random.Pick(availableMembers) : GenerateCharacter().Owner;
-        _mind.SetUserId(mind, ev.Player.UserId);
-        var character = Comp<CharacterComponent>(mind);
-
-        var job = ev.JobId ?? _stationJobs.PickBestAvailableJobWithPriority(ev.Station, character.Profile.JobPriorities, true);
-        var mob = _stationSpawning.SpawnPlayerCharacterOnStation(ev.Station, job, character.Profile);
-        _mind.TransferTo(mind, mob);
-
-        ev.Handled = true;
+        var ent = _random.PickAndTake(producer.UnusedCharacterPool);
+        return (ent, Comp<MindComponent>(ent), Comp<CharacterComponent>(ent));
     }
 
     /// <summary>
     /// Hires a cast, and integrates relationships between all of the characters.
     /// </summary>
-    public void GenerateCast(
-        int captainCount = 26,
-        int crewCount = 10,
-        ProducerComponent? producer = null
-    )
+    public void GenerateCast(int count, ProducerComponent? producer = null)
     {
         producer ??= GetProducer();
 
         var preEvt = new PreCastGenerateEvent(producer);
         RaiseLocalEvent(ref preEvt);
 
-        var captains = GenerateEmptySocialGroup();
-        captains.Comp.RelativeContext = producer.CaptainContext;
-
         var newCharacters = new List<EntityUid>();
 
-        for (var i = 0; i < captainCount; i++)
+        for (var i = 0; i < count; i++)
         {
-            var newCrew = GenerateRandomCrew(crewCount);
-            captains.Comp.Members.Add(newCrew.Comp.Members[0]);
-            newCharacters.AddRange(newCrew.Comp.Members);
-            producer.AvailableCrews.Add(newCrew);
+            var newCrew = GenerateCharacter(producer: producer);
+            newCharacters.Add(newCrew);
         }
 
         var psgEvt = new PostShipGenerateEvent(producer);
@@ -118,20 +70,9 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         }
 
         IntegrateRelationshipGroup(producer.IntercrewContext, newCharacters);
-        producer.Characters.AddRange(newCharacters);
 
         var postEvt = new PostCastGenerateEvent(producer);
         RaiseLocalEvent(ref postEvt);
-    }
-
-    public void GenerateCast(
-        int captainCount = 26,
-        int minimumCrew = 5,
-        int maximumCrew = 12,
-        ProducerComponent? producer = null
-    )
-    {
-        GenerateCast(captainCount, _random.Next(minimumCrew, maximumCrew), producer);
     }
 }
 
@@ -141,14 +82,14 @@ public sealed class CastCommand : ToolshedCommand
     private AuditionsSystem? _auditions;
 
     [CommandImplementation("generate")]
-    public IEnumerable<string> Generate(int captainCount = 26, int crewSize = 10)
+    public IEnumerable<string> Generate(int crewSize = 10)
     {
         _auditions ??= GetSys<AuditionsSystem>();
 
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        _auditions.GenerateCast(captainCount, crewSize, null);
+        _auditions.GenerateCast(crewSize);
 
         yield return $"Generated cast in {stopwatch.Elapsed.TotalMilliseconds} ms.";
     }
@@ -163,7 +104,7 @@ public sealed class CastCommand : ToolshedCommand
         }
         else
         {
-            yield return $"{character.Name}, {character.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships\n";
+            yield return $"{character.Name}, {character.Profile.Age} years old ({character.DateOfBirth.ToShortDateString()})\nBackground: {character.Background}\nRelationships\n";
             Dictionary<string, List<string>> relationships = new();
             foreach (var relationship in character.Relationships)
             {
@@ -179,12 +120,26 @@ public sealed class CastCommand : ToolshedCommand
             }
         }
     }
+
+    [CommandImplementation("viewAll")]
+    public IEnumerable<string> ViewAll()
+    {
+        _auditions ??= GetSys<AuditionsSystem>();
+        var producer = _auditions.GetProducer();
+        foreach (var character in producer.Characters)
+        {
+            foreach (var line in View(character))
+            {
+                yield return line;
+            }
+        }
+    }
 }
 
 /// <summary>
 /// Fires prior to this social group's relationships being integrated.
 /// </summary>
-[ByRefEvent]
+[ByRefEvent, PublicAPI]
 public readonly record struct SocialGroupPreIntegrationEvent(Entity<SocialGroupComponent> Group);
 
 /// <summary>
