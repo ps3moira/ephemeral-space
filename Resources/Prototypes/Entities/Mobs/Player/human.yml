@@ -4,6 +4,12 @@
   parent: BaseMobHuman
   id: MobHuman
 
+- type: entity
+  save: false
+  name: NeoUrist McHands
+  parent: ESPBaseMobHuman
+  id: MobHumanNeo
+
 #Syndie
 - type: entity
   parent: MobHuman
