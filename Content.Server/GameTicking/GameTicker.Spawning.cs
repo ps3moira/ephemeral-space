@@ -27,6 +27,9 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
+// ES START
+using Content.Server._ES.Auditions;
+// ES END
 
 namespace Content.Server.GameTicking
 {
@@ -35,6 +38,9 @@ namespace Content.Server.GameTicking
         [Dependency] private readonly IAdminManager _adminManager = default!;
         [Dependency] private readonly SharedJobSystem _jobs = default!;
         [Dependency] private readonly AdminSystem _admin = default!;
+// ES START
+        [Dependency] private readonly AuditionsSystem _auditions = default!;
+// ES END
 
         [ValidatePrototypeId<EntityPrototype>]
         public const string ObserverPrototypeName = "MobObserver";
@@ -214,6 +220,10 @@ namespace Content.Server.GameTicking
 
                 character = HumanoidCharacterProfile.RandomWithSpecies(speciesId);
             }
+// ES START
+            var (newMind, mindComp, characterComp) = _auditions.GetRandomCharacterFromPool(station);
+            character = characterComp.Profile;
+// ES END
 
             // We raise this event to allow other systems to handle spawning this player themselves. (e.g. late-join wizard, etc)
             var bev = new PlayerBeforeSpawnEvent(player, character, jobId, lateJoin, station);
@@ -262,8 +272,10 @@ namespace Content.Server.GameTicking
 
             DebugTools.AssertNotNull(data);
 
-            var newMind = _mind.CreateMind(data!.UserId, character.Name);
-            _mind.SetUserId(newMind, data.UserId);
+// ES START
+            //var newMind = _mind.CreateMind(data!.UserId, character.Name);
+            _mind.SetUserId(newMind, data!.UserId);
+// ES END
 
             var jobPrototype = _prototypeManager.Index<JobPrototype>(jobId);
 

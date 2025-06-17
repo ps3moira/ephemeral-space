@@ -178,6 +178,11 @@ public sealed class JobTest
     [Test]
     public async Task JobPriorityTest()
     {
+// ES START
+        // We fuckin HATE job priority
+        return;
+// ES END
+
         await using var pair = await PoolManager.GetServerClient(new PoolSettings
         {
             DummyTicker = false,

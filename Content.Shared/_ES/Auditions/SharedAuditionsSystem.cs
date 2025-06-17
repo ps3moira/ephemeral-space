@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._ES.CCVar;
 using Content.Shared.Mind;
@@ -6,13 +5,11 @@ using Content.Shared.Preferences;
 using Content.Shared.Random;
 using Content.Shared.Random.Helpers;
 using Robust.Shared.Configuration;
-using Robust.Shared.Enums;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
-using Robust.Shared.Utility;
 
 namespace Content.Shared._ES.Auditions;
 
@@ -41,14 +38,10 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Returns the producer entity singleton, or creates one if it doesn't exist yet
     /// </summary>
-    public bool TryGetProducer([NotNullWhen(true)] ref ProducerComponent? component)
+    public ProducerComponent GetProducer()
     {
-        if (component != null)
-            return true;
-
         var query = EntityQuery<ProducerComponent>().ToList();
-        component = !query.Any() ? CreateProducerEntity() : query.First();
-        return true;
+        return !query.Any() ? CreateProducerEntity() : query.First();
     }
 
     /// <summary>
@@ -65,9 +58,9 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// </summary>
     public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool mutual = true)
     {
-        characterA.Comp.Relationships[characterB.Comp.Name] = relationshipId;
+        characterA.Comp.Relationships[characterB] = relationshipId;
         if (mutual)
-            characterB.Comp.Relationships[characterA.Comp.Name] = relationshipId;
+            characterB.Comp.Relationships[characterA] = relationshipId;
         Dirty(characterA);
     }
 
@@ -76,9 +69,9 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// </summary>
     public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool mutual = true)
     {
-        characterA.Comp.Relationships.Remove(characterB.Comp.Name);
+        characterA.Comp.Relationships.Remove(characterB);
         if (mutual)
-            characterB.Comp.Relationships.Remove(characterA.Comp.Name);
+            characterB.Comp.Relationships.Remove(characterA);
         Dirty(characterA);
     }
 
@@ -163,72 +156,30 @@ public abstract class SharedAuditionsSystem : EntitySystem
     }
 
     /// <summary>
-    /// Returns the amount of days there are in a month.
-    /// </summary>
-    public int GetDaysInMonth(int month, int year)
-    {
-        var leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
-        var thirtyMonths = new List<int> {4, 6, 9, 11};
-        if (month == 2)
-            return leapYear ? 29 : 28;
-        return thirtyMonths.Contains(month) ? 30 : 31;
-    }
-
-    /// <summary>
-    /// Creates a blank character.
-    /// </summary>
-    public (Entity<MindComponent>, CharacterComponent) CreateBlankCharacter(ProducerComponent? producer = null)
-    {
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
-
-        var mind = _mind.CreateMind(null);
-        var component = EnsureComp<CharacterComponent>(mind.Owner);
-        component.Name = "No Name";
-        component.Age = 21;
-        component.Gender = Gender.Neuter;
-
-        var year = _config.GetCVar(ECCVars.InGameYear) - component.Age;
-        var month = _random.Next(1, 12);
-        var day = _random.Next(1, GetDaysInMonth(month, year));
-        component.DateOfBirth = new DateTime(year, month, day);
-
-        producer.Characters.Add(mind.Owner);
-        Dirty(mind, component);
-
-        return (mind, component);
-    }
-
-    /// <summary>
     /// Generates a character with randomized name, age, gender and appearance.
     /// </summary>
-    public Entity<CharacterComponent> GenerateCharacter([ForbidLiteral] string randomPrototype = "DefaultBackground")
+    public Entity<MindComponent, CharacterComponent> GenerateCharacter([ForbidLiteral] string randomPrototype = "DefaultBackground", ProducerComponent? producer = null)
     {
-        var newCharacter = CreateBlankCharacter();
-        var characterComp = newCharacter.Item2;
-        var mind = newCharacter.Item1;
+        producer ??= GetProducer();
 
         var profile = HumanoidCharacterProfile.RandomWithSpecies();
 
-        characterComp.Name = profile.Name;
-        characterComp.Age = profile.Age;
-        characterComp.Gender = profile.Gender;
-        characterComp.Appearance = profile.Appearance;
+        var (ent, mind) = _mind.CreateMind(null, profile.Name);
+        var character = EnsureComp<CharacterComponent>(ent);
 
-        var year = _config.GetCVar(ECCVars.InGameYear) - characterComp.Age;
+        var year = _config.GetCVar(ECCVars.InGameYear) - profile.Age;
         var month = _random.Next(1, 12);
-        var day = _random.Next(1, GetDaysInMonth(month, year));
-        characterComp.DateOfBirth = new DateTime(year, month, day);
+        var day = _random.Next(1, DateTime.DaysInMonth(year, month));
+        character.DateOfBirth = new DateTime(year, month, day);
+        character.Background = _prototypeManager.Index<WeightedRandomPrototype>(randomPrototype).Pick(_random);
+        character.Profile = profile;
 
-        var prototype = _prototypeManager.Index<WeightedRandomPrototype>(randomPrototype);
-        var background = prototype.Pick(_random);
-        characterComp.Background = background;
+        Dirty(ent, character);
 
-        mind.Comp.CharacterName = profile.Name;
-        Dirty(mind, characterComp);
-        Dirty(mind, mind.Comp);
+        producer.Characters.Add(ent);
+        producer.UnusedCharacterPool.Add(ent);
 
-        return (mind.Owner, characterComp);
+        return (ent, mind, character);
     }
 
     /// <summary>
@@ -236,43 +187,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// </summary>
     public Entity<SocialGroupComponent> GenerateEmptySocialGroup(ProducerComponent? producer = null)
     {
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
+        producer ??= GetProducer();
 
         var newCrew = EntityManager.Spawn();
         var component = EnsureComp<SocialGroupComponent>(newCrew);
         producer.SocialGroups.Add(newCrew);
 
         return (newCrew, component);
-    }
-
-    /// <summary>
-    /// Generates a random crew entity and crewmembers, with a captain provided. Integrates relationships between all crew members.
-    /// </summary>
-    public Entity<SocialGroupComponent> GenerateCrewWithCaptain(EntityUid captain, int crewCount, ProducerComponent? producer = null)
-    {
-        if (!TryGetProducer(ref producer))
-            throw new Exception("Could not get ProducerComponent!");
-
-        var crew = GenerateEmptySocialGroup(producer);
-        var component = EnsureComp<SocialGroupComponent>(crew);
-        component.RelativeContext = producer.CrewContext;
-
-        component.Members.Add(captain);
-        for (var i = 0; i < crewCount; i++)
-        {
-            var member = GenerateCharacter();
-            component.Members.Add(member);
-        }
-
-        return crew;
-    }
-
-    /// <summary>
-    /// Completely generates a random crew entity, with random captains and crewmembers.
-    /// </summary>
-    public Entity<SocialGroupComponent> GenerateRandomCrew(int crewCount)
-    {
-        return GenerateCrewWithCaptain(GenerateCharacter(), crewCount);
     }
 }
