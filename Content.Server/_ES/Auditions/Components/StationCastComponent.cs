@@ -7,5 +7,5 @@ namespace Content.Server._ES.Auditions.Components;
 public sealed partial class StationCastComponent : Component
 {
     [DataField]
-    public EntityUid Crew;
+    public List<EntityUid> Crew = new();
 }

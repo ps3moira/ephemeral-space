@@ -1,7 +1,10 @@
 using System.Diagnostics;
+using Content.Server._ES.Auditions.Components;
 using Content.Server.Administration;
+using Content.Server.Mind;
 using Content.Shared._ES.Auditions;
 using Content.Shared.Administration;
+using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using JetBrains.Annotations;
 using Robust.Shared.Random;
@@ -15,6 +18,23 @@ namespace Content.Server._ES.Auditions;
 public sealed class AuditionsSystem : SharedAuditionsSystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly MindSystem _mind = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawnComplete);
+    }
+
+    private void OnSpawnComplete(PlayerSpawnCompleteEvent ev)
+    {
+        if (!_mind.TryGetMind(ev.Mob, out var mind, out _))
+            return;
+
+        var cast = EnsureComp<StationCastComponent>(ev.Station);
+        cast.Crew.Add(mind);
+    }
 
     public Entity<MindComponent, CharacterComponent> GetRandomCharacterFromPool(EntityUid station)
     {
