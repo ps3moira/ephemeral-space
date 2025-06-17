@@ -6,6 +6,12 @@
   description: Don't lose it.
   components:
   - type: Appearance
+  - type: Sprite
+    sprite: _ES/Objects/Misc/wallet.rsi
+    layers:
+    - state: icon-base
+    - state: icon-color
+      color: "#ffffff"
   - type: Clothing
     quickEquip: false
     slots:
@@ -15,7 +21,7 @@
     size: Small
   - type: Wallet
     idSlot:
-      name: access-id-card-component-default # Placeholder
+      name: access-id-card-component-default
       whitelist:
         components:
         - IdCard
@@ -33,9 +39,31 @@
 
 - type: entity
   parent: ESBaseWallet
-  id: ESCrewman
-  name: crewman wallet
-  description: A basic wallet fit for all your crewman needs.
+  id: ESWallet
+  name: wallet
+  description: A basic wallet fit for all your monetary needs.
   components:
   - type: Wallet
     id: PassengerIDCard # Placeholder
+
+- type: entity
+  parent: ESWallet
+  id: ESWalletPIT
+  name: PIT wallet
+  description: A basic Pomelo Interspace Transit brand wallet.
+  components:
+  - type: Sprite
+    sprite: _ES/Objects/Misc/wallet.rsi
+    layers:
+    - state: icon-base
+    - state: icon-color
+      color: "#e9744a"
+
+- type: entity
+  parent: ESWalletPIT
+  id: ESWalletPITEngineer
+  name: PIT engineer wallet
+  description: A Pomelo Interspace Transit brand wallet given to engineers. It reeks of plasma and smoke.
+  components:
+  - type: Wallet
+    id: EngineeringIDCard # Placeholder
