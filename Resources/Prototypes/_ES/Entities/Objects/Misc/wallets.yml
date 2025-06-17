@@ -1,0 +1,41 @@
+- type: entity
+  abstract: true
+  parent: BaseStorageItem
+  id: ESBaseWallet
+  name: wallet
+  description: Don't lose it.
+  components:
+  - type: Appearance
+  - type: Clothing
+    quickEquip: false
+    slots:
+    - idcard
+    - Belt
+  - type: Item
+    size: Small
+  - type: Wallet
+    idSlot:
+      name: access-id-card-component-default # Placeholder
+      whitelist:
+        components:
+        - IdCard
+  - type: Storage
+    grid:
+    - 0,0,2,1
+    maxItemSize: Small
+  - type: ItemSlots
+  - type: ContainerContainer
+    containers:
+      wallet-id: !type:ContainerSlot {}
+  - type: Tag
+    tags:
+    - DoorBumpOpener
+
+- type: entity
+  parent: ESBaseWallet
+  id: ESCrewman
+  name: crewman wallet
+  description: A basic wallet fit for all your crewman needs.
+  components:
+  - type: Wallet
+    id: PassengerIDCard # Placeholder
