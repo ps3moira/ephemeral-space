@@ -1,9 +1,8 @@
 - type: entity
-  abstract: true
   parent: BaseStorageItem
-  id: ESBaseWallet
+  id: ESWallet
   name: wallet
-  description: Don't lose it.
+  description: A basic wallet, fit for all your monetary needs.
   components:
   - type: Appearance
   - type: Sprite
@@ -17,32 +16,10 @@
     - Belt
   - type: Item
     size: Small
-  - type: Wallet
-    idSlot:
-      name: access-id-card-component-default
-      whitelist:
-        components:
-        - IdCard
   - type: Storage
     grid:
     - 0,0,2,1
     maxItemSize: Small
-  - type: ItemSlots
-  - type: ContainerContainer
-    containers:
-      wallet-id: !type:ContainerSlot {}
-  - type: Tag
-    tags:
-    - DoorBumpOpener
-
-- type: entity
-  parent: ESBaseWallet
-  id: ESWallet
-  name: wallet
-  description: A basic wallet fit for all your monetary needs.
-  components:
-  - type: Wallet
-    id: PassengerIDCard # Placeholder
 
 - type: entity
   parent: ESWallet
@@ -55,12 +32,3 @@
     layers:
     - state: icon
     - state: icon-logo-PIT
-
-- type: entity
-  parent: ESWalletPIT
-  id: ESWalletPITEngineer
-  name: PIT engineer wallet
-  description: A Pomelo Interspace Transit brand wallet given to engineers. It reeks of plasma and smoke.
-  components:
-  - type: Wallet
-    id: EngineeringIDCard # Placeholder
