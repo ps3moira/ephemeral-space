@@ -9,9 +9,7 @@
   - type: Sprite
     sprite: _ES/Objects/Misc/wallet.rsi
     layers:
-    - state: icon-base
-    - state: icon-color
-      color: "#ffffff"
+    - state: icon
   - type: Clothing
     quickEquip: false
     slots:
@@ -55,9 +53,8 @@
   - type: Sprite
     sprite: _ES/Objects/Misc/wallet.rsi
     layers:
-    - state: icon-base
-    - state: icon-color
-      color: "#e9744a"
+    - state: icon
+    - state: icon-logo-PIT
 
 - type: entity
   parent: ESWalletPIT
