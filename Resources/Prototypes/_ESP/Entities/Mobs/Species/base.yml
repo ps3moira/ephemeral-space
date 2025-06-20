@@ -2,11 +2,11 @@
   save: false
   parent:
   - BaseMob
-  - MobDamageable
+  - ESPMobDamageable
   - MobPolymorphable
   - MobCombat
   - StripableInventoryBase
-  id: BaseMobSpecies
+  id: ESPBaseMobSpecies
   abstract: true
   components:
   - type: Sprite
@@ -79,6 +79,7 @@
   - type: RotationVisuals
     defaultRotation: 90
     horizontalRotation: 90
+  - type: Appearance
   - type: HumanoidAppearance
     species: Human
   - type: SlowOnDamage
@@ -138,12 +139,8 @@
     - RadiationProtection
     - Drowsiness
     - Adrenaline
-  - type: Body
-    prototype: Human
-    requiredLegs: 2
   - type: Identity
   - type: IdExaminable
-  - type: Hands
   - type: ComplexInteraction
   - type: Internals
   - type: FloatingVisuals
@@ -214,15 +211,16 @@
     - DoorBumpOpener
     - AnomalyHost
 
+
 - type: entity
   save: false
   parent:
-  - MobBloodstream
-  - MobRespirator
+  #- MobBloodStream
+  - MobRespirator # Gasping doesn't work but airloss does
   - MobAtmosStandard
   - MobFlammable
-  - BaseMobSpecies
-  id: BaseMobSpeciesOrganic
+  - ESPBaseMobSpecies
+  id: ESPBaseMobSpeciesOrganic
   abstract: true
   components:
   - type: Barotrauma
@@ -270,80 +268,10 @@
   - type: Butcherable
     butcheringType: Spike # TODO human.
     spawned:
-      - id: FoodMeat
-        amount: 5
-  - type: Respirator
-    damage:
-      types:
-        Asphyxiation: 1.0
+    - id: FoodMeat
+      amount: 5
     damageRecovery:
       types:
         Asphyxiation: -1.0
   - type: FireVisuals
     alternateState: Standing
-
-- type: entity
-  save: false
-  id: BaseSpeciesDummy
-  parent: InventoryBase
-  abstract: true
-  components:
-  - type: Hands
-  - type: ComplexInteraction
-  - type: ContainerContainer
-  - type: Icon
-    sprite: Mobs/Species/Human/parts.rsi
-    state: full
-  - type: Sprite
-    drawdepth: Mobs
-    noRot: true
-    # TODO BODY Turn these into individual body parts?
-    layers:
-    - map: [ "enum.HumanoidVisualLayers.Chest" ]
-    - map: [ "enum.HumanoidVisualLayers.Head" ]
-    - map: [ "enum.HumanoidVisualLayers.Snout" ]
-    - map: [ "enum.HumanoidVisualLayers.Eyes" ]
-    - map: [ "enum.HumanoidVisualLayers.RArm" ]
-    - map: [ "enum.HumanoidVisualLayers.LArm" ]
-    - map: [ "enum.HumanoidVisualLayers.RLeg" ]
-    - map: [ "enum.HumanoidVisualLayers.LLeg" ]
-    - map: [ "enum.HumanoidVisualLayers.UndergarmentBottom" ]
-    - map: [ "enum.HumanoidVisualLayers.UndergarmentTop" ]
-    - map: ["jumpsuit"]
-    - map: ["enum.HumanoidVisualLayers.LFoot"]
-    - map: ["enum.HumanoidVisualLayers.RFoot"]
-    - map: ["enum.HumanoidVisualLayers.LHand"]
-    - map: ["enum.HumanoidVisualLayers.RHand"]
-    - map: ["enum.HumanoidVisualLayers.Handcuffs"]
-      color: "#ffffff"
-      sprite: Objects/Misc/handcuffs.rsi
-      state: body-overlay-2
-      visible: false
-    - map: [ "gloves" ]
-    - map: [ "shoes" ]
-    - map: [ "ears" ]
-    - map: [ "eyes" ]
-    - map: [ "belt" ]
-    - map: [ "id" ]
-    - map: [ "outerClothing" ]
-    - map: [ "back" ]
-    - map: [ "neck" ]
-    - map: [ "enum.HumanoidVisualLayers.FacialHair" ]
-    - map: [ "enum.HumanoidVisualLayers.Hair" ]
-    - map: [ "enum.HumanoidVisualLayers.HeadSide" ]
-    - map: [ "enum.HumanoidVisualLayers.HeadTop" ]
-    - map: [ "enum.HumanoidVisualLayers.Tail" ]
-    - map: [ "mask" ]
-    - map: [ "head" ]
-    - map: [ "pocket1" ]
-    - map: [ "pocket2" ]
-  - type: Appearance
-  - type: HumanoidAppearance
-    species: Human
-  - type: Body
-    prototype: Human
-    requiredLegs: 2
-  - type: UserInterface
-    interfaces:
-      enum.HumanoidMarkingModifierKey.Key: # sure, this can go here too
-        type: HumanoidMarkingModifierBoundUserInterface
