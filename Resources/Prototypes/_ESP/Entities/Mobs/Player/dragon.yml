@@ -108,13 +108,6 @@
     - Adrenaline
   - type: Temperature
     heatDamageThreshold: 800
-  - type: Metabolizer
-    solutionOnBody: false
-    updateInterval: 0.25
-    metabolizerTypes: [ Dragon ]
-    groups:
-    - id: Medicine
-    - id: Poison
   - type: Butcherable
     spawned:
     - id: FoodMeatDragon
