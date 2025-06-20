@@ -1,5 +1,5 @@
 - type: entity
-  parent: [ ESPBaseMobSpecies, ESPMobHands ]
+  parent: [ ESPBaseMobSpeciesOrganic, ESPMobHands ]
   id: ESPBaseMobHuman
   name: NeoUrist McHands
   abstract: true

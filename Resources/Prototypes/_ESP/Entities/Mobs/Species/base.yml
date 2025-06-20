@@ -215,7 +215,7 @@
 - type: entity
   save: false
   parent:
-  #- MobBloodStream
+  - MobBloodstream
   - MobRespirator # Gasping doesn't work but airloss does
   - MobAtmosStandard
   - MobFlammable
