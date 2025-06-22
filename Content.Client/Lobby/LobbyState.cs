@@ -114,7 +114,7 @@ namespace Content.Client.Lobby
             }
 
             // ES START
-            new SpawningWindow().OpenCentered();
+            new ESSpawningWindow().OpenCentered();
             return;
             // ES END
             new LateJoinGui().OpenCentered();

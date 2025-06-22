@@ -16,7 +16,7 @@ namespace Content.Shared._ES.Auditions;
 /// <summary>
 /// The main system for handling the creation, integration of relations
 /// </summary>
-public abstract class SharedAuditionsSystem : EntitySystem
+public abstract class ESSharedAuditionsSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IConfigurationManager _config = default!;
@@ -27,10 +27,10 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <inheritdoc/>
     public override void Initialize()
     {
-        SubscribeLocalEvent<ProducerComponent, ComponentStartup>(OnStartup);
+        SubscribeLocalEvent<ESProducerComponent, ComponentStartup>(OnStartup);
     }
 
-    private void OnStartup(EntityUid uid, ProducerComponent component, ComponentStartup args)
+    private void OnStartup(EntityUid uid, ESProducerComponent component, ComponentStartup args)
     {
         _pvs.AddGlobalOverride(uid);
     }
@@ -38,25 +38,25 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Returns the producer entity singleton, or creates one if it doesn't exist yet
     /// </summary>
-    public ProducerComponent GetProducer()
+    public ESProducerComponent GetProducer()
     {
-        var query = EntityQuery<ProducerComponent>().ToList();
+        var query = EntityQuery<ESProducerComponent>().ToList();
         return !query.Any() ? CreateProducerEntity() : query.First();
     }
 
     /// <summary>
     /// Creates the producer entity, intended to be a singleton
     /// </summary>
-    private ProducerComponent CreateProducerEntity()
+    private ESProducerComponent CreateProducerEntity()
     {
         var manager = Spawn(null, MapCoordinates.Nullspace);
-        return EnsureComp<ProducerComponent>(manager);
+        return EnsureComp<ESProducerComponent>(manager);
     }
 
     /// <summary>
     /// Changes the relationship between two characters. If the relationship is not mutual, then it assigns A's relationship with B, and does not affect B.
     /// </summary>
-    public void ChangeRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, string relationshipId, bool mutual = true)
+    public void ChangeRelationship(Entity<ESCharacterComponent> characterA, Entity<ESCharacterComponent> characterB, string relationshipId, bool mutual = true)
     {
         characterA.Comp.Relationships[characterB] = relationshipId;
         if (mutual)
@@ -67,7 +67,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Removes the relationship between two characters. If the removal is not mutual, then it removes A's relationship with B, and does not affect B.
     /// </summary>
-    public void RemoveRelationship(Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB, bool mutual = true)
+    public void RemoveRelationship(Entity<ESCharacterComponent> characterA, Entity<ESCharacterComponent> characterB, bool mutual = true)
     {
         characterA.Comp.Relationships.Remove(characterB);
         if (mutual)
@@ -78,7 +78,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Attempts to integrate a relationship between two characcters with the following relationship context.
     /// </summary>
-    public void IntegrateRelationship(RelationshipContext context, Entity<CharacterComponent> characterA, Entity<CharacterComponent> characterB)
+    public void IntegrateRelationship(ESRelationshipContext context, Entity<ESCharacterComponent> characterA, Entity<ESCharacterComponent> characterB)
     {
         if (!_random.Prob(context.RelationshipProbability))
             return;
@@ -105,7 +105,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Attempts to integrate relationships with a group of characters. Uses a list of Entity&lt;CharacterComponent&gt;s.
     /// </summary>
-    public void IntegrateRelationshipGroup(RelationshipContext context, List<Entity<CharacterComponent>> characters)
+    public void IntegrateRelationshipGroup(ESRelationshipContext context, List<Entity<ESCharacterComponent>> characters)
     {
         // rain here. im no profesional, but i pulled out the paper & pencil for this "algorithm".
         // that goes to show how really great i am with programming things. yay.
@@ -129,7 +129,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Attempts to integrate relationships with a group of characters. Uses a list of EntityUids.
     /// </summary>
-    public void IntegrateRelationshipGroup(RelationshipContext context, List<EntityUid> characters)
+    public void IntegrateRelationshipGroup(ESRelationshipContext context, List<EntityUid> characters)
     {
         var stopwatch = new Stopwatch();
 
@@ -141,8 +141,8 @@ public abstract class SharedAuditionsSystem : EntitySystem
             for (var j = 0; j < i; j++)
             {
                 IntegrateRelationship(context,
-                    (characters[i], EnsureComp<CharacterComponent>(characters[i])),
-                    (characters[j], EnsureComp<CharacterComponent>(characters[j])));
+                    (characters[i], EnsureComp<ESCharacterComponent>(characters[i])),
+                    (characters[j], EnsureComp<ESCharacterComponent>(characters[j])));
                 debugCalls++;
             }
         }
@@ -150,7 +150,7 @@ public abstract class SharedAuditionsSystem : EntitySystem
         Log.Info($"Called {debugCalls} times in {stopwatch.Elapsed}.");
     }
 
-    public void IntegrateRelationshipGroup(SocialGroupComponent groupComponent)
+    public void IntegrateRelationshipGroup(ESSocialGroupComponent groupComponent)
     {
         IntegrateRelationshipGroup(groupComponent.RelativeContext, groupComponent.Members);
     }
@@ -158,16 +158,16 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a character with randomized name, age, gender and appearance.
     /// </summary>
-    public Entity<MindComponent, CharacterComponent> GenerateCharacter([ForbidLiteral] string randomPrototype = "DefaultBackground", ProducerComponent? producer = null)
+    public Entity<MindComponent, ESCharacterComponent> GenerateCharacter([ForbidLiteral] string randomPrototype = "DefaultBackground", ESProducerComponent? producer = null)
     {
         producer ??= GetProducer();
 
         var profile = HumanoidCharacterProfile.RandomWithSpecies();
 
         var (ent, mind) = _mind.CreateMind(null, profile.Name);
-        var character = EnsureComp<CharacterComponent>(ent);
+        var character = EnsureComp<ESCharacterComponent>(ent);
 
-        var year = _config.GetCVar(ECCVars.InGameYear) - profile.Age;
+        var year = _config.GetCVar(ESCVars.InGameYear) - profile.Age;
         var month = _random.Next(1, 12);
         var day = _random.Next(1, DateTime.DaysInMonth(year, month));
         character.DateOfBirth = new DateTime(year, month, day);
@@ -185,12 +185,12 @@ public abstract class SharedAuditionsSystem : EntitySystem
     /// <summary>
     /// Generates a completely empty crew entity.
     /// </summary>
-    public Entity<SocialGroupComponent> GenerateEmptySocialGroup(ProducerComponent? producer = null)
+    public Entity<ESSocialGroupComponent> GenerateEmptySocialGroup(ESProducerComponent? producer = null)
     {
         producer ??= GetProducer();
 
         var newCrew = EntityManager.Spawn();
-        var component = EnsureComp<SocialGroupComponent>(newCrew);
+        var component = EnsureComp<ESSocialGroupComponent>(newCrew);
         producer.SocialGroups.Add(newCrew);
 
         return (newCrew, component);
