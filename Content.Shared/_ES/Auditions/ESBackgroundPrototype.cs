@@ -5,8 +5,8 @@ namespace Content.Shared._ES.Auditions;
 /// <summary>
 /// This is a prototype for marking backgrounds
 /// </summary>
-[Prototype]
-public sealed partial class BackgroundPrototype : IPrototype
+[Prototype("esBackground")]
+public sealed partial class ESBackgroundPrototype : IPrototype
 {
     /// <inheritdoc/>
     [IdDataField]

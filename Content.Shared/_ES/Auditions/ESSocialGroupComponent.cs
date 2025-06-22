@@ -4,7 +4,7 @@ namespace Content.Shared._ES.Auditions;
 /// Tracks social groups in the cast. This can be used for tracking crews, workers unions, friend groups, and more.
 /// </summary>
 [RegisterComponent]
-public sealed partial class SocialGroupComponent : Component
+public sealed partial class ESSocialGroupComponent : Component
 {
     /// <summary>
     /// Who are the members in this social group?
@@ -16,7 +16,7 @@ public sealed partial class SocialGroupComponent : Component
     /// When generating relationships within this group, what relationship context should we use?
     /// </summary>
     [DataField]
-    public RelationshipContext RelativeContext = new ();
+    public ESRelationshipContext RelativeContext = new ();
 
     /// <summary>
     /// Has this social group been integrated already?

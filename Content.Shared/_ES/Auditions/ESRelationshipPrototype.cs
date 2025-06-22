@@ -5,8 +5,8 @@ namespace Content.Shared._ES.Auditions;
 /// <summary>
 /// This is a prototype for marking relationships
 /// </summary>
-[Prototype]
-public sealed partial class RelationshipPrototype : IPrototype
+[Prototype("esRelationship")]
+public sealed partial class ESRelationshipPrototype : IPrototype
 {
     /// <inheritdoc/>
     [IdDataField]

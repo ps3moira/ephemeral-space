@@ -17,7 +17,7 @@ namespace Content.Server._ES.Auditions;
 /// <summary>
 /// This handles the server-side of auditioning!
 /// </summary>
-public sealed class AuditionsSystem : SharedAuditionsSystem
+public sealed class ESAuditionsSystem : ESSharedAuditionsSystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly MindSystem _mind = default!;
@@ -34,15 +34,15 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         if (!_mind.TryGetMind(ev.Mob, out var mind, out _))
             return;
 
-        var cast = EnsureComp<StationCastComponent>(ev.Station);
+        var cast = EnsureComp<ESStationCastComponent>(ev.Station);
         cast.Crew.Add(mind);
     }
 
-    public Entity<MindComponent, CharacterComponent> GetRandomCharacterFromPool(EntityUid station)
+    public Entity<MindComponent, ESCharacterComponent> GetRandomCharacterFromPool(EntityUid station)
     {
         var producer = GetProducer();
 
-        var cast = EnsureComp<StationCastComponent>(station);
+        var cast = EnsureComp<ESStationCastComponent>(station);
 
         if (producer.UnusedCharacterPool.Count < producer.PoolRefreshSize)
         {
@@ -53,7 +53,7 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         var weightedMembers = new Dictionary<EntityUid, float>();
         foreach (var castMember in producer.UnusedCharacterPool)
         {
-            if (!TryComp<CharacterComponent>(castMember, out var characterComponent))
+            if (!TryComp<ESCharacterComponent>(castMember, out var characterComponent))
                 continue;
 
             // arbitrary formula but good enough
@@ -61,17 +61,17 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
         }
 
         var ent = _random.PickAndTake(weightedMembers);
-        return (ent, Comp<MindComponent>(ent), Comp<CharacterComponent>(ent));
+        return (ent, Comp<MindComponent>(ent), Comp<ESCharacterComponent>(ent));
     }
 
     /// <summary>
     /// Hires a cast, and integrates relationships between all of the characters.
     /// </summary>
-    public void GenerateCast(int count, ProducerComponent? producer = null)
+    public void GenerateCast(int count, ESProducerComponent? producer = null)
     {
         producer ??= GetProducer();
 
-        var preEvt = new PreCastGenerateEvent(producer);
+        var preEvt = new ESPreCastGenerateEvent(producer);
         RaiseLocalEvent(ref preEvt);
 
         var newCharacters = new List<EntityUid>();
@@ -82,30 +82,30 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
             newCharacters.Add(newCrew);
         }
 
-        var psgEvt = new PostShipGenerateEvent(producer);
+        var psgEvt = new ESPostShipGenerateEvent(producer);
         RaiseLocalEvent(ref psgEvt);
 
         foreach (var group in producer.SocialGroups)
         {
-            var comp = EnsureComp<SocialGroupComponent>(group);
+            var comp = EnsureComp<ESSocialGroupComponent>(group);
             if (comp.Integrated)
                 continue;
 
             var ent = (group, comp);
 
-            var pre = new SocialGroupPreIntegrationEvent(ent);
+            var pre = new ESSocialGroupPreIntegrationEvent(ent);
             RaiseLocalEvent(ref pre);
 
             IntegrateRelationshipGroup(comp.RelativeContext, comp.Members);
             comp.Integrated = true;
 
-            var post = new SocialGroupPostIntegrationEvent(ent);
+            var post = new ESSocialGroupPostIntegrationEvent(ent);
             RaiseLocalEvent(ref post);
         }
 
         IntegrateRelationshipGroup(producer.IntercrewContext, newCharacters);
 
-        var postEvt = new PostCastGenerateEvent(producer);
+        var postEvt = new ESPostCastGenerateEvent(producer);
         RaiseLocalEvent(ref postEvt);
     }
 }
@@ -113,12 +113,12 @@ public sealed class AuditionsSystem : SharedAuditionsSystem
 [ToolshedCommand, AdminCommand(AdminFlags.Round)]
 public sealed class CastCommand : ToolshedCommand
 {
-    private AuditionsSystem? _auditions;
+    private ESAuditionsSystem? _auditions;
 
     [CommandImplementation("generate")]
     public IEnumerable<string> Generate(int crewSize = 10)
     {
-        _auditions ??= GetSys<AuditionsSystem>();
+        _auditions ??= GetSys<ESAuditionsSystem>();
 
         var stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -131,8 +131,8 @@ public sealed class CastCommand : ToolshedCommand
     [CommandImplementation("view")]
     public IEnumerable<string> View([PipedArgument] EntityUid castMember)
     {
-        _auditions ??= GetSys<AuditionsSystem>();
-        if (!EntityManager.TryGetComponent<CharacterComponent>(castMember, out var character))
+        _auditions ??= GetSys<ESAuditionsSystem>();
+        if (!EntityManager.TryGetComponent<ESCharacterComponent>(castMember, out var character))
         {
             yield return "Invalid cast member object (did not have CharacterComponent)!";
         }
@@ -158,7 +158,7 @@ public sealed class CastCommand : ToolshedCommand
     [CommandImplementation("viewAll")]
     public IEnumerable<string> ViewAll()
     {
-        _auditions ??= GetSys<AuditionsSystem>();
+        _auditions ??= GetSys<ESAuditionsSystem>();
         var producer = _auditions.GetProducer();
         foreach (var character in producer.Characters)
         {
@@ -174,28 +174,28 @@ public sealed class CastCommand : ToolshedCommand
 /// Fires prior to this social group's relationships being integrated.
 /// </summary>
 [ByRefEvent, PublicAPI]
-public readonly record struct SocialGroupPreIntegrationEvent(Entity<SocialGroupComponent> Group);
+public readonly record struct ESSocialGroupPreIntegrationEvent(Entity<ESSocialGroupComponent> Group);
 
 /// <summary>
 /// Fires after this social group's relationships have been integrated.
 /// </summary>
-[ByRefEvent]
-public readonly record struct SocialGroupPostIntegrationEvent(Entity<SocialGroupComponent> Group);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESSocialGroupPostIntegrationEvent(Entity<ESSocialGroupComponent> Group);
 
 /// <summary>
 /// Fires prior to any generation events (captain group, crew groups, etc).
 /// </summary>
-[ByRefEvent]
-public readonly record struct PreCastGenerateEvent(ProducerComponent Producer);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESPreCastGenerateEvent(ESProducerComponent Producer);
 
 /// <summary>
 /// Fires after the primary generation events (captain group, crew group, etc) but before integration of relationships.
 /// </summary>
-[ByRefEvent]
-public readonly record struct PostShipGenerateEvent(ProducerComponent Producer);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESPostShipGenerateEvent(ESProducerComponent Producer);
 
 /// <summary>
 /// Fires after all relationships have been integrated.
 /// </summary>
-[ByRefEvent]
-public readonly record struct PostCastGenerateEvent(ProducerComponent Producer);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESPostCastGenerateEvent(ESProducerComponent Producer);

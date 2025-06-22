@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Numerics;
-using Content.Client.CrewManifest;
 using Content.Client.GameTicking.Managers;
 using Content.Client.Lobby;
 using Content.Client.Players.PlayTimeTracking;
@@ -13,14 +12,13 @@ using Robust.Client.GameObjects;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Client.UserInterface.XAML;
-using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client._ES.Spawning;
 
 [GenerateTypedNameReferences]
-public sealed partial class SpawningWindow : FancyWindow
+public sealed partial class ESSpawningWindow : FancyWindow
 {
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
@@ -31,7 +29,7 @@ public sealed partial class SpawningWindow : FancyWindow
     private readonly ClientGameTicker _gameTicker;
     private readonly SpriteSystem _sprites;
 
-    public SpawningWindow()
+    public ESSpawningWindow()
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);

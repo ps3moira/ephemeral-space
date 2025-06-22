@@ -1,4 +1,4 @@
-<controls:SpawningWindow
+<controls:ESSpawningWindow
     xmlns="https://spacestation14.io"
     xmlns:controls="clr-namespace:Content.Client._ES.Spawning"
     xmlns:customControls="clr-namespace:Content.Client.Administration.UI.CustomControls"
@@ -32,4 +32,4 @@
             </ScrollContainer>
         </BoxContainer>
     </BoxContainer>
-</controls:SpawningWindow>
+</controls:ESSpawningWindow>

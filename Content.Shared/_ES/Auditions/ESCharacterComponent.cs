@@ -8,7 +8,7 @@ namespace Content.Shared._ES.Auditions;
 /// This is used for marking the character of components.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
-public sealed partial class CharacterComponent : Component
+public sealed partial class ESCharacterComponent : Component
 {
     public string Name => Profile.Name;
 
@@ -16,10 +16,10 @@ public sealed partial class CharacterComponent : Component
     public DateTime DateOfBirth;
 
     [DataField, AutoNetworkedField]
-    public Dictionary<EntityUid, ProtoId<RelationshipPrototype>> Relationships = new ();
+    public Dictionary<EntityUid, ProtoId<ESRelationshipPrototype>> Relationships = new ();
 
     [DataField, AutoNetworkedField]
-    public ProtoId<BackgroundPrototype> Background;
+    public ProtoId<ESBackgroundPrototype> Background;
 
     [DataField, AutoNetworkedField]
     public List<EntityUid> Memories = new ();

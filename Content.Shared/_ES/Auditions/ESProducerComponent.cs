@@ -8,7 +8,7 @@ namespace Content.Shared._ES.Auditions;
 /// This is the cast component placed onto the producer entity.
 /// </summary>
 [RegisterComponent]
-public sealed partial class ProducerComponent : Component
+public sealed partial class ESProducerComponent : Component
 {
     /// <summary>
     /// The amount of characters we refresh <see cref="UnusedCharacterPool"/> to.
@@ -41,14 +41,14 @@ public sealed partial class ProducerComponent : Component
     public List<EntityUid> SocialGroups = new ();
 
     [DataField]
-    public RelationshipContext IntercrewContext = new ("RelationshipPoolIntercrew", 0.25f);
+    public ESRelationshipContext IntercrewContext = new ("RelationshipPoolIntercrew", 0.25f);
 }
 
 /// <summary>
 /// Configuration for integrating relationships.
 /// </summary>
 [Serializable, NetSerializable, DataDefinition]
-public partial struct RelationshipContext
+public partial struct ESRelationshipContext
 {
     /// <summary>
     /// List of possible relationships.
@@ -74,11 +74,11 @@ public partial struct RelationshipContext
     [DataField]
     public ProtoId<WeightedRandomPrototype>? SeperatePoolPrototype;
 
-    public RelationshipContext()
+    public ESRelationshipContext()
     {
     }
 
-    public RelationshipContext(string prototype, float probability)
+    public ESRelationshipContext(string prototype, float probability)
     {
         RelationshipProbability = probability;
         PoolPrototype = prototype;
@@ -86,7 +86,7 @@ public partial struct RelationshipContext
         SeperatePoolPrototype = null;
     }
 
-    public RelationshipContext(string prototype, float probability, float unificationProbability, string? seperatePrototype)
+    public ESRelationshipContext(string prototype, float probability, float unificationProbability, string? seperatePrototype)
     {
         RelationshipProbability = probability;
         PoolPrototype = prototype;
