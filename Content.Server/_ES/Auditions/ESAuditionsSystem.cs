@@ -71,7 +71,7 @@ public sealed class ESAuditionsSystem : ESSharedAuditionsSystem
     {
         producer ??= GetProducer();
 
-        var preEvt = new PreCastGenerateEvent(producer);
+        var preEvt = new ESPreCastGenerateEvent(producer);
         RaiseLocalEvent(ref preEvt);
 
         var newCharacters = new List<EntityUid>();
@@ -82,7 +82,7 @@ public sealed class ESAuditionsSystem : ESSharedAuditionsSystem
             newCharacters.Add(newCrew);
         }
 
-        var psgEvt = new PostShipGenerateEvent(producer);
+        var psgEvt = new ESPostShipGenerateEvent(producer);
         RaiseLocalEvent(ref psgEvt);
 
         foreach (var group in producer.SocialGroups)
@@ -93,19 +93,19 @@ public sealed class ESAuditionsSystem : ESSharedAuditionsSystem
 
             var ent = (group, comp);
 
-            var pre = new SocialGroupPreIntegrationEvent(ent);
+            var pre = new ESSocialGroupPreIntegrationEvent(ent);
             RaiseLocalEvent(ref pre);
 
             IntegrateRelationshipGroup(comp.RelativeContext, comp.Members);
             comp.Integrated = true;
 
-            var post = new SocialGroupPostIntegrationEvent(ent);
+            var post = new ESSocialGroupPostIntegrationEvent(ent);
             RaiseLocalEvent(ref post);
         }
 
         IntegrateRelationshipGroup(producer.IntercrewContext, newCharacters);
 
-        var postEvt = new PostCastGenerateEvent(producer);
+        var postEvt = new ESPostCastGenerateEvent(producer);
         RaiseLocalEvent(ref postEvt);
     }
 }
@@ -174,28 +174,28 @@ public sealed class CastCommand : ToolshedCommand
 /// Fires prior to this social group's relationships being integrated.
 /// </summary>
 [ByRefEvent, PublicAPI]
-public readonly record struct SocialGroupPreIntegrationEvent(Entity<ESSocialGroupComponent> Group);
+public readonly record struct ESSocialGroupPreIntegrationEvent(Entity<ESSocialGroupComponent> Group);
 
 /// <summary>
 /// Fires after this social group's relationships have been integrated.
 /// </summary>
-[ByRefEvent]
-public readonly record struct SocialGroupPostIntegrationEvent(Entity<ESSocialGroupComponent> Group);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESSocialGroupPostIntegrationEvent(Entity<ESSocialGroupComponent> Group);
 
 /// <summary>
 /// Fires prior to any generation events (captain group, crew groups, etc).
 /// </summary>
-[ByRefEvent]
-public readonly record struct PreCastGenerateEvent(ESProducerComponent Producer);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESPreCastGenerateEvent(ESProducerComponent Producer);
 
 /// <summary>
 /// Fires after the primary generation events (captain group, crew group, etc) but before integration of relationships.
 /// </summary>
-[ByRefEvent]
-public readonly record struct PostShipGenerateEvent(ESProducerComponent Producer);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESPostShipGenerateEvent(ESProducerComponent Producer);
 
 /// <summary>
 /// Fires after all relationships have been integrated.
 /// </summary>
-[ByRefEvent]
-public readonly record struct PostCastGenerateEvent(ESProducerComponent Producer);
+[ByRefEvent, PublicAPI]
+public readonly record struct ESPostCastGenerateEvent(ESProducerComponent Producer);
