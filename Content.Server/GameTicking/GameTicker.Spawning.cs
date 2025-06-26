@@ -39,7 +39,7 @@ namespace Content.Server.GameTicking
         [Dependency] private readonly SharedJobSystem _jobs = default!;
         [Dependency] private readonly AdminSystem _admin = default!;
 // ES START
-        [Dependency] private readonly AuditionsSystem _auditions = default!;
+        [Dependency] private readonly ESAuditionsSystem _esAuditions = default!;
 // ES END
 
         [ValidatePrototypeId<EntityPrototype>]
@@ -221,7 +221,7 @@ namespace Content.Server.GameTicking
                 character = HumanoidCharacterProfile.RandomWithSpecies(speciesId);
             }
 // ES START
-            var (newMind, mindComp, characterComp) = _auditions.GetRandomCharacterFromPool(station);
+            var (newMind, mindComp, characterComp) = _esAuditions.GetRandomCharacterFromPool(station);
             character = characterComp.Profile;
 // ES END
 
