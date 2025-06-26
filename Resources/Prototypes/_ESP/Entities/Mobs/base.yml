@@ -67,7 +67,7 @@
 
 - type: entity
   save: false
-  id: ESPMobHands # TODO Finish this when HandsRefactor merged
+  id: ESPMobHands
   abstract: true
   components:
   - type: Hands

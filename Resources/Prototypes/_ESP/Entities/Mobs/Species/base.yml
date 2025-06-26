@@ -215,8 +215,8 @@
 - type: entity
   save: false
   parent:
-  - MobBloodstream
-  - MobRespirator # Gasping doesn't work but airloss does
+  - MobBloodstream # Works but no metabolism
+  - MobRespirator # Does nothing currently
   - MobAtmosStandard
   - MobFlammable
   - ESPBaseMobSpecies
