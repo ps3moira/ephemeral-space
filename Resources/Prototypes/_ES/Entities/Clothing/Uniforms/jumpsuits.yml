@@ -27,3 +27,33 @@
       - state: equipped-INNERCLOTHING-jumpsuit
       - state: equipped-INNERCLOTHING-shirt
         color: "#e9744a"
+
+- type: entity
+  parent: UnsensoredClothingUniformBase
+  id: ESUnsensoredClothingUniformJumpsuitCaptainPIT
+  name: captain's uniform
+  description: A collared long-sleeve shirt with dull brown pants. It bares the color and logo of Pomelo Interspace Transit.
+  components:
+  - type: Sprite
+    sprite: _ES/Clothing/Uniforms/Jumpsuit/captain.rsi
+    layers:
+    - state: icon
+    - state: icon-color
+      color: "#e9744a"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left
+      - state: inhand-left-color
+        color: "#e9744a"
+      right:
+      - state: inhand-right
+      - state: inhand-right-color
+        color: "#e9744a"
+  - type: Clothing
+    sprite: _ES/Clothing/Uniforms/Jumpsuit/captain.rsi
+    clothingVisuals:
+      jumpsuit:
+      - state: equipped-INNERCLOTHING
+      - state: equipped-INNERCLOTHING-color
+        color: "#e9744a"
