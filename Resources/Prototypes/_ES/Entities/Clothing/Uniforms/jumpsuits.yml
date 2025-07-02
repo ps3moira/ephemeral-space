@@ -27,3 +27,14 @@
       - state: equipped-INNERCLOTHING-jumpsuit
       - state: equipped-INNERCLOTHING-shirt
         color: "#e9744a"
+
+- type: entity
+  parent: UnsensoredClothingUniformBase
+  id: ESUnsensoredClothingUniformJumpsuitCaptain
+  name: captain's uniform
+  description: A collared long-sleeve shirt with dark brown slacks. Thankfully, a necktie is not part of dress code.
+  components:
+  - type: Sprite
+    sprite: _ES/Clothing/Uniforms/Jumpsuit/captain.rsi
+  - type: Clothing
+    sprite: _ES/Clothing/Uniforms/Jumpsuit/captain.rsi
