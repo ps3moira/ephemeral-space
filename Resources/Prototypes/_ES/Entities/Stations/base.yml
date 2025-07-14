@@ -4,6 +4,7 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: Transform
+  - type: ESEvacBeacon
   - type: GridSpawn
     groups:
       trade: !type:GridSpawnGroup
