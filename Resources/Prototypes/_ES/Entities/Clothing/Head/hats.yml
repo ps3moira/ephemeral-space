@@ -55,11 +55,6 @@
   - type: FoldableClothing
     foldedEquippedPrefix: up
     foldedHeldPrefix: up
-  - type: HideLayerClothing
-    slots: []
-    layers:
-      Hair: HEAD
-      HeadTop: HEAD
 
 - type: entity
   parent: ESClothingHeadUshanka

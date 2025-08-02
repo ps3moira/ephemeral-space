@@ -159,7 +159,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
                 EquipRoleLoadout(entity.Value, loadout, roleProto!);
             }
 
-            else if (prototype?.StartingGear != null)
+            if (prototype?.StartingGear != null)
             {
                 var startingGear = _prototypeManager.Index<StartingGearPrototype>(prototype.StartingGear);
                 EquipStartingGear(entity.Value, startingGear, raiseEvent: false);
