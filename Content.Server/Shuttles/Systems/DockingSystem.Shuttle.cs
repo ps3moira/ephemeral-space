@@ -54,6 +54,11 @@ public sealed partial class DockingSystem
         gridRotation = Angle.Zero;
         matty = Matrix3x2.Identity;
 
+// ES START
+        // .Owner usage in 2025? more likely than you'd think.
+        if (shuttleDock.DockedWith == gridDock.Owner && gridDock.DockedWith == shuttleDock.Owner)
+            return true;
+// ES END
         if (shuttleDock.Docked ||
             gridDock.Docked ||
             !shuttleDockXform.Anchored ||
@@ -208,7 +213,9 @@ public sealed partial class DockingSystem
                     // Check if there's no intersecting grids (AKA oh god it's docking at cargo).
                     grids.Clear();
                     _mapManager.FindGridsIntersecting(targetGridXform.MapID, dockedBounds, ref grids, includeMap: false);
-                    if (grids.Any(o => o.Owner != targetGrid && o.Owner != targetGridXform.MapUid))
+// ES START
+                    if (grids.Any(o => o.Owner != targetGrid && o.Owner != targetGridXform.MapUid && o.Owner != shuttleUid))
+// ES END
                     {
                         continue;
                     }
