@@ -117,7 +117,9 @@ public sealed partial class ShuttleSystem
     /// <summary>
     /// Ensures the FTL map exists and returns it.
     /// </summary>
-    private EntityUid EnsureFTLMap()
+// ES START
+    public EntityUid EnsureFTLMap()
+// ES END
     {
         var query = AllEntityQuery<FTLMapComponent>();
 
