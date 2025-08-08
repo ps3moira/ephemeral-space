@@ -117,7 +117,9 @@ public sealed partial class ShuttleSystem
     /// <summary>
     /// Ensures the FTL map exists and returns it.
     /// </summary>
-    private EntityUid EnsureFTLMap()
+// ES START
+    public EntityUid EnsureFTLMap()
+// ES END
     {
         var query = AllEntityQuery<FTLMapComponent>();
 
@@ -616,10 +618,7 @@ public sealed partial class ShuttleSystem
         {
             foreach (var child in toKnock)
             {
-                if (!_statusQuery.TryGetComponent(child, out var status))
-                    continue;
-
-                _stuns.TryParalyze(child, _hyperspaceKnockdownTime, true, status);
+                _stuns.TryUpdateParalyzeDuration(child, _hyperspaceKnockdownTime);
 
                 // If the guy we knocked down is on a spaced tile, throw them too
                 if (grid != null)

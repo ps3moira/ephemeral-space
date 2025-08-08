@@ -49,6 +49,9 @@ namespace Content.IntegrationTests.Tests
 
         private static readonly string[] DoNotMapWhitelist =
         {
+// ES START
+            "/Maps/_ES/estestship_grid.yml",
+// ES END
             "/Maps/centcomm.yml",
             "/Maps/bagel.yml", // Contains mime's rubber stamp --> Either fix this, remove the category, or remove this comment if intentional.
             "/Maps/reach.yml", // Contains handheld crew monitor
@@ -82,6 +85,8 @@ namespace Content.IntegrationTests.Tests
             "dm01-entryway",
             "Exo",
         };
+
+        private static readonly ProtoId<EntityCategoryPrototype> DoNotMapCategory = "DoNotMap";
 
         /// <summary>
         /// Asserts that specific files have been saved as grids and not maps.
@@ -260,7 +265,7 @@ namespace Content.IntegrationTests.Tests
                 return;
 
             var yamlEntities = node["entities"];
-            if (!protoManager.TryIndex<EntityCategoryPrototype>("DoNotMap", out var dnmCategory))
+            if (!protoManager.TryIndex(DoNotMapCategory, out var dnmCategory))
                 return;
 
             Assert.Multiple(() =>

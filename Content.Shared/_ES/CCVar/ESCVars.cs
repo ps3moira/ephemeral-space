@@ -16,8 +16,11 @@ public sealed partial class ESCVars : CVars
     /// <summary>
     /// What's the current year?
     /// </summary>
-    public static readonly CVarDef<int> InGameYear =
-        CVarDef.Create("ic.year", 2186, CVar.SERVER);
+    public static readonly CVarDef<int> ESInGameYear =
+        CVarDef.Create("es_ic.year", 2186, CVar.SERVER);
+
+    public static readonly CVarDef<bool> ESRandomCharacters =
+        CVarDef.Create("es_ic.random_characters", true, CVar.SERVER | CVar.REPLICATED);
 
     // EVAC
 
