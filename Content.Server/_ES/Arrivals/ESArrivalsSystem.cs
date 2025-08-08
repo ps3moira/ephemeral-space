@@ -7,7 +7,6 @@ using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Spawners.Components;
 using Content.Server.Spawners.EntitySystems;
-using Content.Server.Station.Components;
 using Content.Server.Station.Events;
 using Content.Server.Station.Systems;
 using Content.Shared.CCVar;
@@ -112,8 +111,7 @@ public sealed class ESArrivalsSystem : EntitySystem
             _deviceNetwork.QueuePacket(ent, null, payload, netComp.TransmitFrequency);
         }
 
-        if (!TryComp<StationDataComponent>(ent.Comp.Station, out var stationData) ||
-            _station.GetLargestGrid(stationData) is not { } grid)
+        if (_station.GetLargestGrid(ent.Comp.Station) is not { } grid)
             return;
 
         var mobQuery = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
@@ -227,8 +225,7 @@ public sealed class ESArrivalsSystem : EntitySystem
 
     private void ResetTimer(Entity<ESArrivalsShuttleComponent> ent)
     {
-        if (!TryComp<StationDataComponent>(ent.Comp.Station, out var stationData) ||
-            _station.GetLargestGrid(stationData) is not { } grid)
+        if (_station.GetLargestGrid(ent.Comp.Station) is not { } grid)
             return;
 
         _shuttle.FTLToDock(ent, Comp<ShuttleComponent>(ent), grid, hyperspaceTime: (float) ent.Comp.FlightDelay.TotalSeconds);
