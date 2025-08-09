@@ -1,6 +1,5 @@
+using Content.Server.Chat.Systems;
 using Content.Server.RoundEnd;
-using Content.Server.Shuttles.Components;
-using Content.Server.Station.Systems;
 using Content.Shared._ES.Evac;
 using Content.Shared._ES.Evac.Components;
 
@@ -9,51 +8,49 @@ namespace Content.Server._ES.Evac;
 /// <inheritdoc/>
 public sealed class ESEvacSystem : ESSharedEvacSystem
 {
-    [Dependency] private readonly StationSystem _station = default!;
+    [Dependency] private readonly ChatSystem _chat = default!;
     [Dependency] private readonly RoundEndSystem _roundEnd = default!;
 
-    /// <inheritdoc/>
-    public override void Initialize()
+    public override void SetEvacVote(Entity<ESEvacStationComponent> ent, bool value, string? overrideMessage = null)
     {
-        base.Initialize();
+        if (ent.Comp.EvacVoteEnabled == value)
+            return;
+
+        var msg = overrideMessage ?? (value
+            ? Loc.GetString("es-evac-announcement-signal-enabled")
+            : Loc.GetString("es-evac-announcement-signal-disabled"));
+        _chat.DispatchStationAnnouncement(ent, msg);
+        base.SetEvacVote(ent, value, overrideMessage);
     }
 
-    protected override void UpdateEvacStatus()
+    protected override void UpdateEvacVoteStatus()
     {
-        base.UpdateEvacStatus();
+        base.UpdateEvacVoteStatus();
 
         if (_roundEnd.IsRoundEndRequested())
             return;
 
-        var allStations = new HashSet<EntityUid>();
-
-        var stationQuery = EntityQueryEnumerator<StationEmergencyShuttleComponent>();
-        while (stationQuery.MoveNext(out var uid, out _))
+        var yesCount = 0;
+        var noCount = 0;
+        var query = EntityQueryEnumerator<ESEvacStationComponent>();
+        while (query.MoveNext(out var comp))
         {
-            allStations.Add(uid);
+            if (comp.EvacVoteEnabled)
+                yesCount++;
+            else
+                noCount++;
         }
 
-        var noStations = new HashSet<EntityUid>();
-        var beaconQuery = EntityQueryEnumerator<ESEvacConsoleComponent>();
-        while (beaconQuery.MoveNext(out var uid, out _))
+        if ((float)yesCount / (noCount + yesCount) < EvacVotePercentage)
+            return;
+        _roundEnd.RequestRoundEnd(checkCooldown: false);
+
+        var query2 = EntityQueryEnumerator<ESEvacStationComponent>();
+        while (query2.MoveNext(out var uid, out var comp))
         {
-            if (_station.GetOwningStation(uid) is not { } station)
-                continue;
-
-            if (noStations.Contains(station))
-                continue;
-
-            if (!TryComp<ESEvacBeaconComponent>(station, out var beacon))
-                continue;
-
-            if (beacon.Enabled)
-                continue;
-
-            noStations.Add(uid);
+            comp.Locked = true;
+            comp.RoundEndTime = _roundEnd.ExpectedCountdownEnd;
+            Dirty(uid, comp);
         }
-
-        var yesCount = allStations.Count - noStations.Count;
-        if ((float) yesCount / allStations.Count > BeaconPercentage)
-            _roundEnd.RequestRoundEnd();
     }
 }

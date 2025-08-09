@@ -24,8 +24,8 @@ public sealed partial class ESCVars : CVars
 
     // EVAC
 
-    public static readonly CVarDef<float> ESEvacBeaconPercentage =
-        CVarDef.Create("es_evac.beacon_percentage", 0.65f, CVar.SERVER | CVar.REPLICATED);
+    public static readonly CVarDef<float> ESEvacVotePercentage =
+        CVarDef.Create("es_evac.beacon_percentage", 0.665f, CVar.SERVER | CVar.REPLICATED);
 
     // RESPAWNING
     public static readonly CVarDef<bool> ESRespawnEnabled =

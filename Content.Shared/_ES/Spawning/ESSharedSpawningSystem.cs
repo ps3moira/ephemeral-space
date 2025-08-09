@@ -42,8 +42,8 @@ public abstract class ESSharedSpawningSystem : EntitySystem
         SubscribeLocalEvent<MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<MindRemovedMessage>(OnMindRemoved);
 
-        _config.OnValueChanged(ESCVars.ESRespawnEnabled, v => RespawnsEnabled = v, true);
-        _config.OnValueChanged(ESCVars.ESRespawnDelay, d => RespawnDelay = TimeSpan.FromSeconds(d), true);
+        Subs.CVar(_config, ESCVars.ESRespawnEnabled, v => RespawnsEnabled = v, true);
+        Subs.CVar(_config, ESCVars.ESRespawnDelay, d => RespawnDelay = TimeSpan.FromSeconds(d), true);
     }
 
     private void OnMobStateChanged(MobStateChangedEvent ev)

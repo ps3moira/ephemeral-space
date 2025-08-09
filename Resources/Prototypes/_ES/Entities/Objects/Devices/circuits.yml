@@ -16,8 +16,8 @@
 - type: entity
   parent: BaseComputerCircuitboard
   id: ESComputerEvacBeaconCircuitBoard
-  name: emergency beacon computer circuit board
-  description: A computer printed circuit board for a emergency beacon computer.
+  name: emergency beacon console circuit board
+  description: A computer printed circuit board for a emergency beacon console.
   components:
   - type: Sprite
     sprite: _ES/Objects/Devices/circuits.rsi
