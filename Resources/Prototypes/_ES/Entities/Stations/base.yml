@@ -9,6 +9,7 @@
   abstract: true
   components:
   - type: ESEvacStation
+  - type: StationEmergencyShuttle
 
 - type: entity
   id: ESBaseStationNeutral
