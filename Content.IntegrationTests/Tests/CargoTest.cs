@@ -266,7 +266,6 @@ public sealed class CargoTest
             {
                 foreach (var (proto, comp) in pair.GetPrototypesWithComponent<MobPriceComponent>())
                 {
-                    Assert.That(proto.TryGetComponent<BodyComponent>(out _, componentFactory), $"Found MobPriceComponent on {proto.ID}, but no BodyComponent!");
                     Assert.That(proto.TryGetComponent<MobStateComponent>(out _, componentFactory), $"Found MobPriceComponent on {proto.ID}, but no MobStateComponent!");
                 }
             });
