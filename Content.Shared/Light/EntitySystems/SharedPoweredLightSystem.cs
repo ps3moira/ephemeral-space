@@ -7,6 +7,7 @@ using Content.Shared.DeviceLinking.Events;
 using Content.Shared.DeviceNetwork;
 using Content.Shared.DeviceNetwork.Events;
 using Content.Shared.DoAfter;
+using Content.Shared.GameTicking;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Light.Components;
@@ -35,6 +36,9 @@ public abstract class SharedPoweredLightSystem : EntitySystem
     [Dependency] private readonly SharedPointLightSystem _pointLight = default!;
     [Dependency] private readonly SharedStorageSystem _storage = default!;
     [Dependency] private readonly SharedDeviceLinkSystem _deviceLink = default!;
+// ES START
+    [Dependency] private readonly SharedGameTicker _gameTicker = default!;
+// ES END
 
     private static readonly TimeSpan ThunkDelay = TimeSpan.FromSeconds(2);
     public const string LightBulbContainer = "light_bulb";
@@ -298,11 +302,14 @@ public abstract class SharedPoweredLightSystem : EntitySystem
                     SetLight(uid, true, lightBulb.Color, light, lightBulb.LightRadius, lightBulb.LightEnergy, lightBulb.LightSoftness);
                     _appearance.SetData(uid, PoweredLightVisuals.BulbState, PoweredLightState.On, appearance);
                     var time = GameTiming.CurTime;
-                    if (time > light.LastThunk + ThunkDelay)
+// ES START
+                    // dont play light sound if round just started
+                    if (time > light.LastThunk + ThunkDelay
+                        && GameTiming.CurTime - _gameTicker.RoundStartTimeSpan > TimeSpan.FromSeconds(30))
+// ES END
                     {
                         light.LastThunk = time;
-                        Dirty(uid, light);
-                        _audio.PlayPredicted(light.TurnOnSound, uid, user: user, light.TurnOnSound.Params.AddVolume(-10f));
+                        _audio.PlayPvs(light.TurnOnSound, uid, light.TurnOnSound.Params.AddVolume(-10f));
                     }
                 }
                 else
