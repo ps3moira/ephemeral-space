@@ -1,0 +1,171 @@
+- type: entity
+  id: ESTurnstileArrivals
+  parent: BaseStructure
+  name: sturdy turnstile
+  suffix: ES, Indestructible
+  description: A mechanical door that permits one-way access and prevents tailgating. This one is effectively impervious to conventional means of destruction.
+  components:
+  - type: Sprite
+    sprite: Structures/Doors/turnstile.rsi
+    snapCardinals: true
+    drawdepth: Doors
+    layers:
+    - state: turnstile
+      map: [ "enum.TurnstileVisualLayers.Base" ]
+  - type: AnimationPlayer
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.49,-0.49,0.49,0.49" # same dimensions as a door for tall turnstile, prevents objects being thrown through
+        density: 100
+        mask:
+        - FullTileMask
+        layer:
+        - GlassAirlockLayer
+      fix2:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.50,-0.50,0.50,0.50" # same dimensions as a door for tall turnstile, prevents objects being thrown through
+        hard: false
+        mask:
+        - FullTileMask
+        layer:
+        - GlassAirlockLayer
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path:
+          "/Audio/Weapons/smash.ogg"
+  - type: InteractionOutline
+  - type: Turnstile
+    processWhitelist:
+      components:
+      - MobState # no mobs
+      - Pullable # no dragging things in
+  - type: Appearance
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: StrongMetallic
+  - type: AccessReader
+  - type: RadiationBlocker
+    resistance: 1000
+
+# In addition to removing the destructible component & adding radiation resistance, this version of the airlock prototype removes device linking, the wires panel, associated guides to those things, AI control, electrocution, LightningTarget, and welding.
+# It's kind of evil to just copy paste the entire YAML seperately instead of using inheritance for this, but there's not really much of a better way to do it, since we're a downstream.
+# Either way of doing it is a merge conflict landmine, so let's just do this the easier way...
+- type: entity
+  id: ESAirlockArrivals
+  parent: BaseStructure
+  name: sturdy external airlock
+  description: Effectively impervious to conventional means of destruction.
+  components:
+  - type: StationAiWhitelist
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path:
+          "/Audio/Weapons/smash.ogg"
+  - type: InteractionOutline
+  - type: Sprite
+    sprite: Structures/Doors/Airlocks/Standard/shuttle.rsi
+    snapCardinals: false
+    layers:
+    - state: closed
+      map: ["enum.DoorVisualLayers.Base"]
+    - state: closed_unlit
+      shader: unshaded
+      map: ["enum.DoorVisualLayers.BaseUnlit"]
+      visible: false
+    - state: welded
+      map: ["enum.WeldableLayers.BaseWelded"]
+      visible: false
+    - state: bolted_unlit
+      shader: unshaded
+      map: ["enum.DoorVisualLayers.BaseBolted"]
+    - state: emergency_unlit
+      map: ["enum.DoorVisualLayers.BaseEmergencyAccess"]
+      shader: unshaded
+    - state: panel_open
+      map: ["enum.WiresVisualLayers.MaintenancePanel"]
+      visible: false
+    - state: electrified_ai
+      sprite: Interface/Misc/ai_hud.rsi
+      shader: unshaded
+      visible: false
+      map: ["enum.ElectrifiedLayers.HUD"]
+    - state: electrified
+      sprite: Effects/electricity.rsi
+      shader: unshaded
+      visible: false
+      map: ["enum.ElectrifiedLayers.Sparks"]
+  - type: AnimationPlayer
+  - type: Physics
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.49,-0.49,0.49,0.49" # don't want this colliding with walls or they won't close
+        density: 100
+        mask:
+        - FullTileMask
+        layer:
+        - AirlockLayer
+  - type: ContainerFill
+    containers:
+      board: [ DoorElectronics ]
+  - type: AccessReader
+    containerAccessProvider: board
+  - type: Door
+    crushDamage:
+      types:
+        Blunt: 15
+    openSound:
+      path: /Audio/Machines/airlock_open.ogg
+    closeSound:
+      path: /Audio/Machines/airlock_close.ogg
+    denySound:
+      path: /Audio/Machines/airlock_deny.ogg
+  - type: ContainerContainer
+    containers:
+      board: !type:Container
+  - type: Airlock
+  - type: NavMapDoor
+  - type: DoorBolt
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.ElectrifiedVisuals.ShowSparks:
+        enum.ElectrifiedLayers.Sparks:
+          True: { visible: True }
+          False: { visible: False }
+  - type: ApcPowerReceiver
+    powerLoad: 20
+  - type: ExtensionCableReceiver
+  - type: SoundOnOverload
+  - type: SpawnOnOverload
+  - type: Airtight
+    noAirWhenFullyAirBlocked: false
+  - type: RadiationBlocker
+    resistance: 1000
+  - type: Occluder
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: StrongMetallic
+  - type: PlacementReplacement
+    key: walls
+  - type: StaticPrice
+    price: 150
+  - type: Tag
+    tags:
+      - Airlock
+      # This tag is used to nagivate the Airlock construction graph. It's needed because the construction graph is shared between Airlock, AirlockGlass, and HighSecDoor
+  - type: PryUnpowered
+  - type: BlockWeather
+  - type: GuideHelp
+    guides:
+    - Airlocks
+  placement:
+    mode: SnapgridCenter

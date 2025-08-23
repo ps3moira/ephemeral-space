@@ -1,0 +1,29 @@
+- type: entity
+  parent: BaseWall
+  id: ESWallShuttleArrivals
+  name: hardened shuttle wall
+  description: Effectively impervious to conventional means of destruction.
+  suffix: ES, Indestructible
+  components:
+  - type: Sprite
+    sprite: Structures/Walls/shuttle.rsi
+  - type: Icon
+    sprite: Structures/Walls/shuttle.rsi
+    state: full
+  - type: WallReplacementMarker
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        mask:
+        - FullTileMask
+        layer:
+        - WallLayer
+        density: 2000
+  - type: IconSmooth
+    key: walls
+    base: state
+  - type: RadiationBlocker
+    resistance: 1000

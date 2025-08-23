@@ -1,0 +1,57 @@
+# Rather frustratingly, we have to redefine the entire YAML because it starts off with a destructible trigger...
+- type: entity
+  id: ESShuttleWindowArrivals
+  parent: BaseStructure
+  name: hyper-reinforced shuttle window
+  description: Effectively impervious to conventional means of destruction.
+  suffix: ES, Indestructible
+  placement:
+    mode: SnapgridCenter
+    snap:
+    - Window
+  components:
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        collection: GlassSmack
+  - type: WallMount
+    arc: 360 # interact despite grilles
+  - type: Tag
+    tags:
+      - ForceFixRotations
+      - Window
+  - type: Sprite
+    drawdepth: WallTops
+    sprite: Structures/Windows/shuttle_window.rsi
+  - type: Icon
+    sprite: Structures/Windows/shuttle_window.rsi
+    state: full
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb {}
+        mask:
+        - FullTileMask
+        layer:
+        - GlassLayer
+  - type: Damageable
+    damageContainer: StructuralInorganic
+    damageModifierSet: RGlass
+  - type: Airtight
+  - type: IconSmooth
+    key: windows
+    base: swindow
+  - type: InteractionPopup
+    interactSuccessString: comp-window-knock
+    messagePerceivedByOthers: comp-window-knock
+    interactSuccessSound:
+      path: /Audio/Effects/glass_knock.ogg
+  - type: Appearance
+  - type: StaticPrice
+    price: 100
+  - type: BlockWeather
+  - type: RadiationBlocker
+    resistance: 1000
