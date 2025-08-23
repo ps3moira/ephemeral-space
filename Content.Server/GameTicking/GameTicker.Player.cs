@@ -87,7 +87,12 @@ namespace Content.Server.GameTicking
                     if (mind == null)
                     {
                         if (LobbyEnabled)
+                        {
                             PlayerJoinLobby(session);
+                            // ES START
+                            AttachPlayerToLobbyCharacter(session);
+                            // ES END
+                        }
                         else
                             SpawnWaitDb();
 

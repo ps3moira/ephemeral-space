@@ -1,5 +1,6 @@
 using Content.Shared.Roles;
 using Robust.Shared.Configuration;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.CCVar;
 
@@ -15,13 +16,26 @@ public sealed partial class CCVars
     ///     Controls if the lobby is enabled. If it is not, and there are no available jobs, you may get stuck on a black screen.
     /// </summary>
     public static readonly CVarDef<bool>
-        GameLobbyEnabled = CVarDef.Create("game.lobbyenabled", true, CVar.ARCHIVE);
+        GameLobbyEnabled = CVarDef.Create("game.lobbyenabled", false, CVar.ARCHIVE);
 
     /// <summary>
     ///     Controls the duration of the lobby timer in seconds. Defaults to 2 minutes and 30 seconds.
     /// </summary>
     public static readonly CVarDef<int>
         GameLobbyDuration = CVarDef.Create("game.lobbyduration", 150, CVar.ARCHIVE);
+
+    // ES START
+
+    /// <summary>
+    ///     Path to the map to use as the diegetic lobby.
+    /// </summary>
+    public static readonly CVarDef<string>
+        GameDiegeticLobbyMap = CVarDef.Create("game.diegeticlobbymap", "/Maps/_ES/Lobby/lobby_theater.yml", CVar.ARCHIVE | CVar.SERVERONLY);
+
+    public static readonly CVarDef<bool>
+        GameLobbyCurtainAnimation = CVarDef.Create("game.lobbycurtainanimation", true, CVar.ARCHIVE | CVar.CLIENTONLY);
+
+    // ES END
 
     /// <summary>
     ///     Controls if players can latejoin at all.
@@ -347,8 +361,9 @@ public sealed partial class CCVars
     ///     The time in seconds that the server should wait before restarting the round.
     ///     Defaults to 2 minutes.
     /// </summary>
+    // ES EDIT: changed to be replicated, shouldn't be a problem
     public static readonly CVarDef<float> RoundRestartTime =
-        CVarDef.Create("game.round_restart_time", 120f, CVar.SERVERONLY);
+        CVarDef.Create("game.round_restart_time", 120f, CVar.SERVER | CVar.REPLICATED);
 
     /// <summary>
     ///     The prototype to use for secret weights.

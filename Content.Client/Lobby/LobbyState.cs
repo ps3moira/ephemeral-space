@@ -1,3 +1,7 @@
+// ES START
+// pretty much entirely changed again
+// commented out some stuff that may be useful later idk
+// but mostly its all diffy
 using Content.Client.Audio;
 using Content.Client.GameTicking.Managers;
 using Content.Client.LateJoin;
@@ -16,11 +20,23 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Timing;
 // ES START
 using Content.Client._ES.Spawning.Ui;
+using Content.Client.Gameplay;
+using Content.Client.UserInterface.Controls;
+using Content.Client.UserInterface.Screens;
+using Content.Client.UserInterface.Systems.Gameplay;
+using Content.Client.Viewport;
+using Robust.Client.Graphics;
+using Robust.Client.Input;
+
 // ES END
 
 namespace Content.Client.Lobby
 {
-    public sealed class LobbyState : Robust.Client.State.State
+    // ES NOTES
+    // it is slightly cursed for lobbystate to inherit gameplaystatebase, yeah
+    // things we do not need: ingamescreen, separated chat stuff ; we are not going to use any of the
+    // resizing stuff that that allows bc we just will not allow resizing the chat in lobby i think
+    public sealed class LobbyState : GameplayStateBase, IMainViewportState
     {
         [Dependency] private readonly IBaseClient _baseClient = default!;
         [Dependency] private readonly IConfigurationManager _cfg = default!;
@@ -32,6 +48,12 @@ namespace Content.Client.Lobby
         [Dependency] private readonly IVoteManager _voteManager = default!;
         [Dependency] private readonly ClientsidePlaytimeTrackingManager _playtimeTracking = default!;
 
+        // ES START
+        [Dependency] private readonly IEyeManager _eyeManager = default!;
+        public MainViewport Viewport => _userInterfaceManager.ActiveScreen!.GetWidget<MainViewport>()!;
+        private GameplayStateLoadController _loadController = default!;
+        // ES END
+
         private ClientGameTicker _gameTicker = default!;
         private ContentAudioSystem _contentAudioSystem = default!;
 
@@ -40,6 +62,10 @@ namespace Content.Client.Lobby
 
         protected override void Startup()
         {
+            // ES START
+            base.Startup();
+            // ES END
+
             if (_userInterfaceManager.ActiveScreen == null)
             {
                 return;
@@ -47,14 +73,17 @@ namespace Content.Client.Lobby
 
             Lobby = (LobbyGui) _userInterfaceManager.ActiveScreen;
 
+            // ES START
+            _loadController = _userInterfaceManager.GetUIController<GameplayStateLoadController>();
+            _loadController.LoadScreen();
+            // ES END
+
             var chatController = _userInterfaceManager.GetUIController<ChatUIController>();
             _gameTicker = _entityManager.System<ClientGameTicker>();
             _contentAudioSystem = _entityManager.System<ContentAudioSystem>();
             _contentAudioSystem.LobbySoundtrackChanged += UpdateLobbySoundtrackInfo;
 
             chatController.SetMainChat(true);
-
-            _voteManager.SetPopupContainer(Lobby.VoteContainer);
             LayoutContainer.SetAnchorPreset(Lobby, LayoutContainer.LayoutPreset.Wide);
 
             var lobbyNameCvar = _cfg.GetCVar(CCVars.ServerLobbyName);
@@ -65,13 +94,11 @@ namespace Content.Client.Lobby
                 : lobbyNameCvar;
 
             var width = _cfg.GetCVar(CCVars.ServerLobbyRightPanelWidth);
-            Lobby.RightSide.SetWidth = width;
+            //Lobby.RightSide.SetWidth = width;
 
             UpdateLobbyUi();
 
             Lobby.CharacterPreview.CharacterSetupButton.OnPressed += OnSetupPressed;
-            Lobby.ReadyButton.OnPressed += OnReadyPressed;
-            Lobby.ReadyButton.OnToggled += OnReadyToggled;
 
             _gameTicker.InfoBlobUpdated += UpdateLobbyUi;
             _gameTicker.LobbyStatusUpdated += LobbyStatusUpdated;
@@ -80,6 +107,13 @@ namespace Content.Client.Lobby
 
         protected override void Shutdown()
         {
+            // ES START
+            // needed for gameplaystatebase
+            base.Shutdown();
+            _eyeManager.MainViewport = UserInterfaceManager.MainViewport;
+            _loadController.UnloadScreen();
+            // ES END
+
             var chatController = _userInterfaceManager.GetUIController<ChatUIController>();
             chatController.SetMainChat(false);
             _gameTicker.InfoBlobUpdated -= UpdateLobbyUi;
@@ -90,8 +124,6 @@ namespace Content.Client.Lobby
             _voteManager.ClearPopupContainer();
 
             Lobby!.CharacterPreview.CharacterSetupButton.OnPressed -= OnSetupPressed;
-            Lobby!.ReadyButton.OnPressed -= OnReadyPressed;
-            Lobby!.ReadyButton.OnToggled -= OnReadyToggled;
 
             Lobby = null;
         }
@@ -106,25 +138,6 @@ namespace Content.Client.Lobby
         {
             SetReady(false);
             Lobby?.SwitchState(LobbyGui.LobbyGuiState.CharacterSetup);
-        }
-
-        private void OnReadyPressed(BaseButton.ButtonEventArgs args)
-        {
-            if (!_gameTicker.IsGameStarted)
-            {
-                return;
-            }
-
-            // ES START
-            new ESSpawningWindow().OpenCentered();
-            return;
-            // ES END
-            new LateJoinGui().OpenCentered();
-        }
-
-        private void OnReadyToggled(BaseButton.ButtonToggledEventArgs args)
-        {
-            SetReady(args.Pressed);
         }
 
         public override void FrameUpdate(FrameEventArgs e)
@@ -178,37 +191,42 @@ namespace Content.Client.Lobby
 
         private void LobbyLateJoinStatusUpdated()
         {
-            Lobby!.ReadyButton.Disabled = _gameTicker.DisallowedLateJoin;
+            //Lobby!.ReadyButton.Disabled = _gameTicker.DisallowedLateJoin;
         }
 
         private void UpdateLobbyUi()
         {
+
             if (_gameTicker.IsGameStarted)
             {
-                Lobby!.ReadyButton.Text = Loc.GetString("lobby-state-ready-button-join-state");
+                // ES START
+                /*Lobby!.ReadyButton.Text = Loc.GetString("lobby-state-ready-button-join-state");
                 Lobby!.ReadyButton.ToggleMode = false;
                 Lobby!.ReadyButton.Pressed = false;
-                Lobby!.ObserveButton.Disabled = false;
+                Lobby!.ObserveButton.Disabled = false;*/
             }
             else
             {
                 Lobby!.StartTime.Text = string.Empty;
-                Lobby!.ReadyButton.Text = Loc.GetString(Lobby!.ReadyButton.Pressed ? "lobby-state-player-status-ready": "lobby-state-player-status-not-ready");
+                /*Lobby!.ReadyButton.Text = Loc.GetString(Lobby!.ReadyButton.Pressed ? "lobby-state-player-status-ready": "lobby-state-player-status-not-ready");
                 Lobby!.ReadyButton.ToggleMode = true;
                 Lobby!.ReadyButton.Disabled = false;
                 Lobby!.ReadyButton.Pressed = _gameTicker.AreWeReady;
-                Lobby!.ObserveButton.Disabled = true;
+                Lobby!.ObserveButton.Disabled = true;*/
+                // ES END
             }
+
 
             if (_gameTicker.ServerInfoBlob != null)
             {
                 Lobby!.ServerInfo.SetInfoBlob(_gameTicker.ServerInfoBlob);
             }
 
+            // ES START
             var minutesToday = _playtimeTracking.PlaytimeMinutesToday;
             if (minutesToday > 60)
             {
-                Lobby!.PlaytimeComment.Visible = true;
+                //Lobby!.PlaytimeComment.Visible = true;
 
                 var hoursToday = Math.Round(minutesToday / 60f, 1);
 
@@ -220,10 +238,11 @@ namespace Content.Client.Lobby
                     _ => "lobby-state-playtime-comment-selfdestructive"
                 };
 
-                Lobby.PlaytimeComment.SetMarkup(Loc.GetString(chosenString, ("hours", hoursToday)));
+                //Lobby.PlaytimeComment.SetMarkup(Loc.GetString(chosenString, ("hours", hoursToday)));
             }
-            else
-                Lobby!.PlaytimeComment.Visible = false;
+            //else
+                //Lobby!.PlaytimeComment.Visible = false;
+            // ES END
         }
 
         private void UpdateLobbySoundtrackInfo(LobbySoundtrackChangedEvent ev)
@@ -257,6 +276,9 @@ namespace Content.Client.Lobby
 
         private void UpdateLobbyBackground()
         {
+            // ES START
+            // TODO MIRROR LOBBY readd backgrounds somehow
+            /*
             if (_gameTicker.LobbyBackground != null)
             {
                 Lobby!.Background.Texture = _resourceCache.GetResource<TextureResource>(_gameTicker.LobbyBackground );
@@ -265,7 +287,8 @@ namespace Content.Client.Lobby
             {
                 Lobby!.Background.Texture = null;
             }
-
+            */
+            // ES END
         }
 
         private void SetReady(bool newReady)
@@ -277,5 +300,15 @@ namespace Content.Client.Lobby
 
             _consoleHost.ExecuteCommand($"toggleready {newReady}");
         }
+
+        // ES START
+        protected override void OnKeyBindStateChanged(ViewportBoundKeyEventArgs args)
+        {
+            if (args.Viewport == null)
+                base.OnKeyBindStateChanged(new ViewportBoundKeyEventArgs(args.KeyEventArgs, Viewport.Viewport));
+            else
+                base.OnKeyBindStateChanged(args);
+        }
+        // ES END
     }
 }

@@ -1,0 +1,50 @@
+- type: entity
+  id: ESMobTheatergoer
+  parent: BaseMob
+  name: theatergoer
+  description: A member of your troupe.
+  components:
+  - type: Sprite
+    sprite: _ES/Mobs/Ghosts/theatergoer.rsi
+    layers:
+    - state: body
+    - state: head-1
+      map: [ "face" ]
+  - type: RandomSprite
+    available:
+    - face:
+        head-1: ""
+        head-2: ""
+        head-3: ""
+        head-4: ""
+        head-5: ""
+        head-6: ""
+        head-7: ""
+  - type: Eye
+  - type: Input
+    context: "human"
+  - type: Examiner
+  - type: ESTheatergoerMarker
+  - type: Buckle
+  - type: Hands
+    hands:
+      hand_right:
+        location: Right
+      hand_left:
+        location: Left
+    sortedHands:
+    - hand_right
+    - hand_left
+  - type: ComplexInteraction
+  - type: Emoting
+  - type: BodyEmotes
+    soundsId: GeneralBodyEmotes
+  - type: Grammar
+    attributes:
+      proper: true
+      gender: epicene
+  - type: TypingIndicator
+  - type: Tag
+    tags:
+    - FootstepSound
+    - DoorBumpOpener

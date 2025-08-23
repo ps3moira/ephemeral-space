@@ -65,7 +65,8 @@ public sealed class TraitorRuleTest
 
         // Initially in the lobby
         Assert.That(ticker.RunLevel, Is.EqualTo(GameRunLevel.PreRoundLobby));
-        Assert.That(client.AttachedEntity, Is.Null);
+        // ES START
+        Assert.That(client.AttachedEntity, Is.Not.Null);
         Assert.That(ticker.PlayerGameStatuses[client.User!.Value], Is.EqualTo(PlayerGameStatus.NotReadyToPlay));
 
         // Add enough dummy players for the game rule
@@ -73,8 +74,10 @@ public sealed class TraitorRuleTest
         await pair.RunTicksSync(5);
 
         // Initially, the players have no attached entities
-        Assert.That(pair.Player?.AttachedEntity, Is.Null);
-        Assert.That(dummies.All(x => x.AttachedEntity == null));
+        // ES START
+        // Assert.That(pair.Player?.AttachedEntity, Is.Null);
+        // Assert.That(dummies.All(x => x.AttachedEntity == null));
+        // ES END
 
         // Opt-in the player for the traitor role
         await pair.SetAntagPreference(TraitorAntagRoleName, true);
