@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Client.Lobby;
 using Content.Client.Resources;
 using Content.Shared.CCVar;
 using JetBrains.Annotations;
@@ -75,7 +74,7 @@ public sealed class ESLobbyCurtainsUIController : UIController
 
         _accumulatedTime += args.DeltaSeconds;
 
-        var t = Math.Clamp(_accumulatedTime / _currentTargetTime, 0f, 1f);
+        var t = Easings.InOutQuint(Math.Clamp(_accumulatedTime / _currentTargetTime, 0f, 1f));
 
         var leftTargetXPos = CurtainState is LobbyCurtainState.Opening
             ? -_leftCurtain.SetWidth
