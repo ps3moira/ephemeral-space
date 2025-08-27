@@ -7,6 +7,7 @@ using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.Markdown.Value;
 using Robust.Shared.Timing;
 using Robust.Shared.Audio;
+using Robust.Shared.Player;
 
 namespace Content.Shared.GameTicking
 {
@@ -114,6 +115,9 @@ namespace Content.Shared.GameTicking
             Paused = paused;
         }
     }
+
+    [ByRefEvent]
+    public readonly record struct ESOnPlayerReadyToggled(ICommonSession Player, PlayerGameStatus GameStatus);
     // ES END
 
     [Serializable, NetSerializable]

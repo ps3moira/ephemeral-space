@@ -18,7 +18,7 @@
                     </BoxContainer>
                 </ScrollContainer>
             </BoxContainer>
-            <customControls:VSeparator Margin="0 0 10 30"/>
+            <customControls:VSeparator Margin="10 0 10 30"/>
             <BoxContainer Orientation="Vertical">
                 <controls:ESJobDisplay Name="JobDisplay" VerticalAlignment="Center" HorizontalAlignment="Center" VerticalExpand="True" SetWidth="200" Margin="10"/>
             </BoxContainer>

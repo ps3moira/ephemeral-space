@@ -2,7 +2,7 @@ using Content.Shared.GameTicking;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._ES.Lobby;
+namespace Content.Shared._ES.Lobby.Components;
 
 /// <summary>
 /// a tile which, when entered, either switches the player to being readied, or switches them to being unreadied

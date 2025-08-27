@@ -86,6 +86,9 @@ namespace Content.Server.GameTicking
             {
                 AttachPlayerToLobbyCharacter(player);
             }
+
+            var ev = new ESLobbyWorldCreatedEvent();
+            RaiseLocalEvent(ref ev);
         }
 
         private void AttachPlayerToLobbyCharacter(ICommonSession session)
@@ -306,6 +309,11 @@ namespace Content.Server.GameTicking
             // update server info to reflect new ready count
             TryShowReadyStatusAlert(player, ready);
             UpdateInfoText();
+
+// ES START
+            var ev = new ESOnPlayerReadyToggled(player, ready);
+            RaiseLocalEvent(ref ev);
+// ES END
         }
 
         // ES START
@@ -341,4 +349,8 @@ namespace Content.Server.GameTicking
         public bool UserHasJoinedGame(NetUserId userId)
             => PlayerGameStatuses.TryGetValue(userId, out var status) && status == PlayerGameStatus.JoinedGame;
     }
+    // ES START
+    [ByRefEvent]
+    public readonly record struct ESLobbyWorldCreatedEvent;
+    // ES END
 }

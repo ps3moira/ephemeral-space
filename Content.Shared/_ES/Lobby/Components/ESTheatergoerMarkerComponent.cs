@@ -1,6 +1,6 @@
 using Robust.Shared.GameStates;
 
-namespace Content.Shared._ES.Lobby;
+namespace Content.Shared._ES.Lobby.Components;
 
 /// <summary>
 /// an entity that counts as a theatergoer in the lobby

@@ -38,6 +38,10 @@ namespace Content.Server.Preferences.Managers
 
         private int MaxCharacterSlots => _cfg.GetCVar(CCVars.GameMaxCharacterSlots);
 
+// ES START
+        public event Action? ESOnAfterCharacterUpdated;
+// ES END
+
         public void Init()
         {
             _netManager.RegisterNetMessage<MsgPreferencesAndSettings>();
@@ -88,7 +92,12 @@ namespace Content.Server.Preferences.Managers
             if (message.Profile == null)
                 _sawmill.Error($"User {userId} sent a {nameof(MsgUpdateCharacter)} with a null profile in slot {message.Slot}.");
             else
+// ES START
+            {
                 await SetProfile(userId, message.Slot, message.Profile);
+                ESOnAfterCharacterUpdated?.Invoke();
+            }
+// ES END
         }
 
         public async Task SetProfile(NetUserId userId, int slot, ICharacterProfile profile)

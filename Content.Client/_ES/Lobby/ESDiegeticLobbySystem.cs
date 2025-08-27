@@ -1,18 +1,17 @@
+using Content.Client._ES.Multistation.Ui;
 using Content.Client._ES.Spawning.Ui;
 using Content.Client.GameTicking.Managers;
 using Content.Client.Lobby.UI;
 using Content.Shared._ES.Lobby;
+using Content.Shared._ES.Lobby.Components;
 using Content.Shared.Buckle.Components;
 using Content.Shared.GameTicking;
 using Robust.Client.Player;
-using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Physics.Events;
 
 namespace Content.Client._ES.Lobby;
 
-/// <summary>
-/// This handles...
-/// </summary>
+/// <inheritdoc/>
 public sealed class ESDiegeticLobbySystem : ESSharedDiegeticLobbySystem
 {
     [Dependency] private readonly IPlayerManager _player = default!;
@@ -20,6 +19,7 @@ public sealed class ESDiegeticLobbySystem : ESSharedDiegeticLobbySystem
     [Dependency] private readonly ClientGameTicker _ticker = default!;
 
     private ObserveWarningWindow? _observeWindow;
+    private ESJobPrefsWindow? _jobPrefsWindow;
     private ESSpawningWindow? _spawningWindow;
 
     /// <inheritdoc/>
@@ -27,21 +27,42 @@ public sealed class ESDiegeticLobbySystem : ESSharedDiegeticLobbySystem
     {
         base.Initialize();
 
+        SubscribeLocalEvent<TickerJoinGameEvent>(OnTickerJoinGame);
         SubscribeLocalEvent<ESTheatergoerMarkerComponent, BuckledEvent>(OnTheatergoerBuckled);
+    }
+
+    private void OnTickerJoinGame(TickerJoinGameEvent ev)
+    {
+        _spawningWindow?.Close();
+        _jobPrefsWindow?.Close();
     }
 
     protected override void OnTriggerCollided(Entity<ESReadyTriggerMarkerComponent> ent, ref StartCollideEvent args)
     {
         if (!HasComp<ESTheatergoerMarkerComponent>(args.OtherEntity)
-            || args.OtherEntity != _player.LocalEntity
-            || ent.Comp.Behavior is not PlayerGameStatus.ReadyToPlay)
+            || args.OtherEntity != _player.LocalEntity)
             return;
 
-        // only handles latejoining
-        if (!_ticker.IsGameStarted || _spawningWindow?.IsOpen == true)
+        if (ent.Comp.Behavior is not PlayerGameStatus.ReadyToPlay)
+        {
+            _spawningWindow?.Close();
+            _jobPrefsWindow?.Close();
             return;
+        }
 
-        _spawningWindow = new ESSpawningWindow();
+        if (!_ticker.IsGameStarted)
+        {
+            if (_jobPrefsWindow?.IsOpen != true)
+            {
+                _jobPrefsWindow ??= new ESJobPrefsWindow();
+                _jobPrefsWindow.OpenCentered();
+            }
+            return;
+        }
+
+        if (_spawningWindow?.IsOpen == true)
+            return;
+        _spawningWindow ??= new ESSpawningWindow();
         _spawningWindow.OpenCentered();
     }
 

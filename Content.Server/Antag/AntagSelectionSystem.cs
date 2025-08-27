@@ -13,7 +13,6 @@ using Content.Server.Roles;
 using Content.Server.Roles.Jobs;
 using Content.Server.Shuttles.Components;
 using Content.Server.Station.Events;
-using Content.Shared._ES.Lobby;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Antag;
 using Content.Shared.Clothing;
@@ -35,6 +34,9 @@ using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
+// ES START
+using Content.Shared._ES.Lobby.Components;
+// ES END
 
 namespace Content.Server.Antag;
 

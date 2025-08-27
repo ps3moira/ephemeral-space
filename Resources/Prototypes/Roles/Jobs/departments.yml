@@ -99,6 +99,7 @@
   description: department-Engineering-description
 # ES START
   color: "#f39f27"
+  weight: 10
 # ES END
   roles:
   - AtmosphericTechnician
@@ -112,6 +113,7 @@
   description: department-Medical-description
 # ES START
   color: "#57b8f0"
+  weight: 5
 # ES END
   roles:
   - Chemist
@@ -139,6 +141,9 @@
   name: department-Science
   description: department-Science-description
   color: "#D381C9"
+# ES START
+  weight: 4
+# ES END
   roles:
   - ResearchDirector
   - Scientist

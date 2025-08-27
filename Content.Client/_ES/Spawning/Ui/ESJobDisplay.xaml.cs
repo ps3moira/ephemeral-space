@@ -20,6 +20,7 @@ public sealed partial class ESJobDisplay : BoxContainer
 
     private readonly SharedStationSpawningSystem _stationSpawning;
 
+    private ProtoId<JobPrototype> _jobId;
     private EntityUid _doll;
 
     public ESJobDisplay()
@@ -34,6 +35,8 @@ public sealed partial class ESJobDisplay : BoxContainer
 
     public void SetJob(ProtoId<JobPrototype> job)
     {
+        _jobId = job;
+
         var jobProto = _prototypeManager.Index(job);
 
         NameLabel.Text = Loc.GetString(jobProto.Name);
@@ -55,6 +58,13 @@ public sealed partial class ESJobDisplay : BoxContainer
         }
 
         _stationSpawning.EquipStartingGear(_doll, jobProto.StartingGear);
+    }
+
+    protected override void EnteredTree()
+    {
+        base.EnteredTree();
+
+        SetJob(_jobId);
     }
 
     protected override void ExitedTree()

@@ -1,7 +1,7 @@
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
 
-namespace Content.Shared._ES.Lobby;
+namespace Content.Shared._ES.Lobby.Components;
 
 /// <summary>
 /// an entity that, when buckled to, will mark a theatergoer as being an observer

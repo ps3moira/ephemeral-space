@@ -189,6 +189,15 @@ namespace Content.Server.GameTicking
                 return;
             }
 
+            // ES START
+            // You might be asking: what the fuck is this.
+            // Answer? We are manually converting all of our priorities to a binary system here.
+            // We can't really ensure that the data coming in is in a binary format, so we will simply make it so.
+            var jobPrefs = character.JobPriorities
+                .Select(p => (p.Key, p.Value == JobPriority.Never ? JobPriority.Never : JobPriority.Medium))
+                .ToDictionary();
+            // ES END
+
             string speciesId;
             if (_randomizeCharacters)
             {
@@ -224,6 +233,10 @@ namespace Content.Server.GameTicking
             {
                 newMind = _esAuditions.GetRandomCharacterFromPool(station);
                 character = CompOrNull<ESCharacterComponent>(newMind)?.Profile ?? character;
+            }
+            foreach (var (job, pref) in jobPrefs)
+            {
+                character = character.WithJobPriority(job, pref);
             }
 // ES END
 
